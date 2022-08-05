@@ -1,0 +1,57 @@
+.App
+	background: linear-gradient(186deg, rgba(141,223,179,1) 0%, rgba(58,194,255,1) 100%)
+	display: grid
+	grid-template-rows: 50px 1fr
+	margin: 0
+	justify-items: center
+	width: 100vw
+	height: 100vh
+
+#top-bar
+	margin: 0
+	padding: 0
+	background-color: black
+	color: white
+	width: 100vw
+	position: absolute
+
+#ArtGrid
+	width: 100vw
+	height: 100vh
+	display: flex
+	flex-flow: row wrap
+	justify-content: center
+	align-items: flex-start
+	gap: 0
+.art-tile
+	position: relative
+	overflow: clip
+	img
+		position: absolute
+		left: 0
+		top: 0
+		width: 100%
+		height: 100%
+		z-index: 1
+	div.art-info
+		position: absolute
+		left: 0
+		top: 0
+		width: 100%
+		height: 100%
+		display: flex
+		flex-flow: column nowrap
+		justify-content: center
+		align-items: center
+		text-align: center
+		background-color: #00000044
+		backdrop-filter: blur(3px) // supposed to be able to do multiple filters but it ain't liking that
+		border-radius: 20px
+		z-index: 2
+		opacity: 0
+		transition: opacity 0.25s ease-in-out
+		&:hover
+			opacity: 1
+		p
+			color: white
+			margin: 0

@@ -72,6 +72,12 @@ function App() {
 		}
 	}, [tokens]);
 
+	useEffect(() => {
+		if (albums.length < count) {
+			setAlbums(ensureMinAlbumCount(albums));
+		}
+	}, [count]);
+
 	const getSpotifyAlbums = async () => {
 		let responses = [];
 		const limit = 50;
@@ -91,14 +97,11 @@ function App() {
 					);
 				}
 			})
-			console.log(data);
 			responses.push(data);
 
 			offset += limit;
 			theresMore = offset < data.total;
 		} while (theresMore);
-
-		console.log(responses);
 
 		// Parse response to general format
 		let newAlbums = [];
@@ -111,9 +114,21 @@ function App() {
 				id: item.album.id
 			})))
 		);
-		console.log("NEW ALBUMS");
-		console.log(newAlbums);
-		setAlbums(newAlbums);
+		setAlbums(ensureMinAlbumCount(newAlbums));
+	}
+
+	function ensureMinAlbumCount(albumArr) {
+		if (albumArr.length > 0) {
+			// add dupes if less albums are saved than the
+			// desired amount to be shown
+			while (albumArr.length < count) {
+				albumArr = albumArr.concat(albumArr);
+			}
+		} else {
+			console.log("No albums");
+		}
+		albumArr = [...albumArr].sort(() => 0.5 - Math.random()); // shuffle
+		return albumArr;
 	}
 
 	function callAuthApi(body) {

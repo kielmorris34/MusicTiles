@@ -1,3 +1,9 @@
+@keyframes fade-in
+	0%
+		opacity: 0
+	100%
+		opacity: 1
+
 .App
 	background: linear-gradient(186deg, rgba(141,223,179,1) 0%, rgba(58,194,255,1) 100%)
 	display: grid
@@ -26,6 +32,7 @@
 .art-tile
 	position: relative
 	overflow: clip
+	animation: fade-in 0.5s ease-in
 	img
 		position: absolute
 		left: 0

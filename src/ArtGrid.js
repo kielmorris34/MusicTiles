@@ -7,13 +7,14 @@ function ArtGrid({ albums, tileSize, count }) {
 			let pile = [...albums];
 			// add dupes if less albums are saved than the
 			// desired amount to be shown
-			while (pile.length < count) {
-				pile.concat(pile);
-			}
+			// while (pile.length < count) {
+			// 	pile.concat(pile);
+			// }
 			const shuffled = [...pile].sort(() => 0.5 - Math.random());
 			setPickedAlbums(shuffled.slice(0, count));
 		}
-	}, [count, albums]);
+		console.log("effect: pickedAlbums");
+	}, [count]);
 
 	return (
 		<div id="ArtGrid">

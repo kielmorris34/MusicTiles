@@ -1,4 +1,4 @@
-function TopBar({ token, setToken, clientId, clientSecret }) {
+function TopBar({ tokens, setTokens, clientId }) {
 
 	const REDIRECT_URI = "http://localhost:3000";
 	const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize?" +
@@ -8,13 +8,14 @@ function TopBar({ token, setToken, clientId, clientSecret }) {
 		`&redirect_uri=${REDIRECT_URI}`;
 
 	const logout = () => {
-		setToken("");
+		setTokens({});
 		window.localStorage.removeItem("token");
+		window.localStorage.removeItem("refresh_token");
 	}
 
 	return (
 		<div id="top-bar">
-			{!token ?
+			{!tokens.token ?
 				<a href={AUTH_ENDPOINT}>Login to Spotify</a>
 			:
 				<button onClick={logout}>Logout</button>

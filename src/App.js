@@ -39,6 +39,7 @@ function App() {
 	const [width, height] = useWindowDimension();
 	const [tokens, setTokens] = useState({});
 	const [albums, setAlbums] = useState([]);
+	const [flipTime, setFlipTime] = useState(4);
 
 	const REDIRECT_URI = "http://localhost:3000";
 	const CLIENT_ID = "1667bd23e69245408998d6429c6b6949";
@@ -77,6 +78,12 @@ function App() {
 			setAlbums(ensureMinAlbumCount(albums));
 		}
 	}, [count]);
+
+	useEffect(() => {
+		setTileSize(height / rows);
+		setCount(Math.floor(width / (height / rows)) * rows);
+		console.log("effect: resize/rows");
+	}, [rows, width, height]);
 
 	const getSpotifyAlbums = async () => {
 		let responses = [];
@@ -165,16 +172,10 @@ function App() {
 		}
 	}
 
-	useEffect(() => {
-		setTileSize(height / rows);
-		setCount(Math.floor(width / (height / rows)) * rows);
-		console.log("effect: resize/rows");
-	}, [rows, width, height]);
-
 	return (
 		<div className="App">
 			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID} clientSecret={CLIENT_SECRET} />
-			<ArtGrid albums={albums} tileSize={tileSize} count={count} />
+			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} />
 		</div>
 	);
 }

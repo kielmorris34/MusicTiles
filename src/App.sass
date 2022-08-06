@@ -1,11 +1,27 @@
+@keyframes flip-tile
+	from
+		transform: rotateX(0)
+	50%
+		transform: rotateX(0.25turn)
+	50.1%
+		transform: rotateX(0.75turn)
+	to
+		transform: rotateX(1turn)
+	
 @keyframes fade-in
 	0%
 		opacity: 0
 	100%
 		opacity: 1
 
+@keyframes spin
+	from
+		transform: rotate(0)
+	to
+		transform: rotate(360deg)
+
 .App
-	background: linear-gradient(186deg, rgba(141,223,179,1) 0%, rgba(58,194,255,1) 100%)
+	background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(176,176,176,1) 100%)
 	display: grid
 	grid-template-rows: 50px 1fr
 	margin: 0
@@ -62,3 +78,7 @@
 		p
 			color: white
 			margin: 0
+
+.flip-animation
+	animation: flip-tile 1s linear
+	animation-iteration-count: 1

@@ -3,6 +3,7 @@ import './App.css';
 import ArtGrid from './ArtGrid';
 import Settings from './Settings';
 import TopBar from './TopBar';
+import LoginPrompt from './LoginPrompt'
 import axios from 'axios';
 
 function useWindowDimension() {
@@ -45,31 +46,42 @@ function App() {
 	const CLIENT_ID = "1667bd23e69245408998d6429c6b6949";
 	const CLIENT_SECRET = "e44899b0f5114a64bd5bcecdb6036cf3";
 	const API = "https://api.spotify.com/v1/";
+	const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize?" +
+		"response_type=code" +
+		`&client_id=${CLIENT_ID}` +
+		"&scope=user-library-read" +
+		`&redirect_uri=${REDIRECT_URI}`;
 
 	useEffect(() => {
-		let newToken = window.localStorage.getItem("token");
-		if (newToken) {
-			let newRefreshToken = window.localStorage.getItem("refresh_token");
-			setTokens({token: newToken, refreshToken: newRefreshToken});
-		} else {
-			let code;
-			if (window.location.search.length > 0) { // set upon redirect back from Spotify login
-				code = (new URLSearchParams(window.location.search)).get('code');
-				callAuthApi("grant_type=authorization_code"
+		let storedToken = window.localStorage.getItem("token");
+		if (storedToken) {
+			let storedRefreshToken = window.localStorage.getItem("refresh_token");
+			setTokens({token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
+		} else if (window.location.search.length > 0) { // set upon redirect back from Spotify login
+				let code = (new URLSearchParams(window.location.search)).get('code');
+				callAuthApi("personal", "grant_type=authorization_code"
 					+ `&code=${code}`
 					+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
 					+ `&client_id=${CLIENT_ID}`
 					+ `&client_secret=${CLIENT_SECRET}`
 				);
 				window.history.pushState("", "", REDIRECT_URI); // remove param from url
-			}
+		} else {
+			callAuthApi("general", "grant_type=client_credentials"
+				+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
+				+ `&client_id=${CLIENT_ID}`
+				+ `&client_secret=${CLIENT_SECRET}`
+			);
 		}
-		console.log("effect: spotifyAuth");
 	}, []);
 
 	useEffect(() => {
 		if (tokens.token && albums.length === 0) {
-			getSpotifyAlbums();
+			if (tokens.tokenType === "personal") {
+				getSpotifyPersonalAlbums();
+			} else { // general
+				getSpotifyGeneralAlbums();
+			}
 		}
 	}, [tokens]);
 
@@ -85,7 +97,7 @@ function App() {
 		console.log("effect: resize/rows");
 	}, [rows, width, height]);
 
-	const getSpotifyAlbums = async () => {
+	const getSpotifyPersonalAlbums = async () => {
 		let responses = [];
 		const limit = 50;
 		let offset = 0;
@@ -124,6 +136,43 @@ function App() {
 		setAlbums(ensureMinAlbumCount(newAlbums));
 	}
 
+	const getSpotifyGeneralAlbums = async () => {
+		let responses = [];
+		const limit = 50;
+		let offset = 0;
+		let theresMore = true;
+		let {data} = await axios.get(API + `browse/featured-playlists`, {
+			headers: {
+				Authorization: `Bearer ${tokens.token}`
+			},
+		}).catch(function (error) {
+			if (error.response && error.response.status === 401) {
+				console.log("refresh 401");
+				callAuthApi("grant_type=refresh_token"
+					+ `&refresh_token=${tokens.refreshToken}`
+					+ `&client_id=${CLIENT_ID}`
+				);
+			}
+		});
+		//console.log(playlistData);
+		const playlistNum = Math.floor(Math.random() * data.playlists.items.length);
+		data = await axios.get(data.playlists.items[playlistNum].tracks.href, {
+			headers: {
+				Authorization: `Bearer ${tokens.token}`
+			},
+		});
+		console.log(data);
+		// Parse response to general album format
+		let albums = data.data.items.map(item => ({
+			name: item.track.album.name,
+			artist: item.track.album.artists[0].name,
+			art_url: item.track.album.images[0].url,
+			release_date: item.track.album.release_date,
+			id: item.track.album.id
+		}));
+		setAlbums(ensureMinAlbumCount(albums));
+	}
+
 	function ensureMinAlbumCount(albumArr) {
 		if (albumArr.length > 0) {
 			// add dupes if less albums are saved than the
@@ -138,27 +187,37 @@ function App() {
 		return albumArr;
 	}
 
-	function callAuthApi(body) {
+	function callAuthApi(authType, body) {
 		let xhr = new XMLHttpRequest();
 		xhr.open("POST", "http://accounts.spotify.com/api/token");
 		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		xhr.setRequestHeader('Authorization', 'Basic ' + btoa(CLIENT_ID + ":" + CLIENT_SECRET));
 		xhr.send(body);
-		xhr.onload = handleAuthorizationResponse;
+		if (authType === "general") {
+			xhr.onload = handleAuthResponseGeneral;
+		} else { // personal
+			xhr.onload = handleAuthResponsePersonal;
+		}
 	}
 
-	function handleAuthorizationResponse() {
-		if (this.status === 200) {
-			var data = JSON.parse(this.responseText);
+	function handleAuthResponseGeneral() { handleAuthResponse("general", this) }
+
+	function handleAuthResponsePersonal() { handleAuthResponse("personal", this) }
+
+	function handleAuthResponse(authType, response) {
+		if (response.status === 200) {
+			var data = JSON.parse(response.responseText);
 			console.log("success 200");
 			console.log(data);
-			if (data.access_token !== undefined) {
-				window.localStorage.setItem("token", data.access_token);
+			if (authType === "personal") {
+				if (data.access_token !== undefined) {
+					window.localStorage.setItem("token", data.access_token);
+				}
+				if (data.refresh_token !== undefined) {
+					window.localStorage.setItem("refresh_token", data.refresh_token);
+				}
 			}
-			if (data.refresh_token !== undefined) {
-				window.localStorage.setItem("refresh_token", data.refresh_token);
-			}
-			setTokens({token: data.access_token, refreshToken: data.refresh_token});
+			setTokens({token: data.access_token, refreshToken: data.refresh_token, tokenType: authType });
 		} else if (this.status === 401) {
 			console.log("refresh 401");
 			callAuthApi("grant_type=refresh_token"
@@ -167,15 +226,20 @@ function App() {
 			);
 		} else {
 			console.log("bad response");
-			console.log(this.responseText);
-			alert(this.responseText);
+			console.log(response.responseText);
+			alert(response.responseText);
 		}
 	}
 
 	return (
 		<div className="App">
-			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID} clientSecret={CLIENT_SECRET} />
+			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID} 
+				rows={rows} setRows={setRows} flipTime={flipTime} 
+				setFlipTime={setFlipTime} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} />
+			{tokens.tokenType !== "personal" ?
+				<LoginPrompt authEndpoint={AUTH_ENDPOINT} />
+			: "" }
 		</div>
 	);
 }

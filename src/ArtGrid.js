@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 function ArtGrid({ albums, tileSize, count, flipTime }) {
 
 	useEffect(() => {
-		const flipInterval = window.setInterval(() => {
-			if (albums.length > 0) {
+		let flipInterval;
+		if (albums.length > 0) {
+			flipInterval = window.setInterval(() => {
 				// choose a random art-tile img and change src to next indexed album art
 				let shownAlbums = [...document.getElementById("ArtGrid").children].map(tile => tile.firstChild.getAttribute("src"));
 				let index;
@@ -20,7 +21,6 @@ function ArtGrid({ albums, tileSize, count, flipTime }) {
 				} while (tileIndex === artGrid.getAttribute("lastFlipped", tileIndex) && count > 1);
 				const tileImg = artGrid.children.item(tileIndex).firstChild;
 
-
 				// animate flip
 				tileImg.classList.remove("flip-animation");
 				void tileImg.offsetWidth;
@@ -30,10 +30,10 @@ function ArtGrid({ albums, tileSize, count, flipTime }) {
 				}, 500); // half of flip-animation duration
 
 				artGrid.setAttribute("lastFlipped", tileIndex);
-			} else {
-				console.log("can't start flip interval");
-			}
-		}, flipTime * 1000);
+			}, flipTime * 1000);
+		} else {
+			console.log("can't start flip interval");
+		}
 		return () => clearInterval(flipInterval);
 	}, [flipTime, count, albums]);
 

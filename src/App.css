@@ -37,17 +37,12 @@
   width: 100vw;
   height: 100vh;
 }
-
-#top-bar {
-  margin: 0;
-  padding: 0;
-  background-color: black;
-  color: white;
-  width: 100vw;
-  position: absolute;
+.App:hover #top-bar {
+  opacity: 1;
 }
 
 #ArtGrid {
+  z-index: 1;
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -99,6 +94,98 @@
 .flip-animation {
   animation: flip-tile 1s linear;
   animation-iteration-count: 1;
+}
+
+#top-bar {
+  z-index: 2;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  color: black;
+  width: 100%;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3333333333);
+}
+
+.options {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  margin: 0;
+}
+.options > div {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.options > div p {
+  font-size: 10pt;
+  padding: 3px 6px;
+  background-color: #ccc;
+  color: black;
+  border-radius: 5px;
+}
+.options > div p, .options > div label {
+  margin: 0;
+}
+
+#logout {
+  font-size: 10pt;
+  padding: 3px 6px;
+  color: white;
+  background-color: #191414;
+  border-radius: 6px;
+}
+
+#login-prompt {
+  z-index: 3;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+#login-prompt h1 {
+  margin-bottom: 0;
+}
+#login-prompt p {
+  margin-top: 0.5em;
+  margin-bottom: 2em;
+}
+#login-prompt div {
+  padding: 50px;
+  background-color: white;
+  border-radius: 40px;
+}
+#login-prompt a {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  background-color: #1db954;
+  padding: 10px;
+  border-radius: 20px;
+  color: #191414;
+}
+#login-prompt a img {
+  height: 1.6em;
+  margin-left: 7px;
 }
 
 /*# sourceMappingURL=App.css.map */

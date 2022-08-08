@@ -1,3 +1,4 @@
+@use "sass:color"
 
 // vars
 $spotify-green: #1db954
@@ -26,17 +27,50 @@ $spotify-black: #191414
 	to
 		transform: rotate(360deg)
 
-.App
-	background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(176,176,176,1) 100%)
+// Light/Dark mode theming
+:root
+	--dark-color: white
+	$dark-bg-color: #191414
+	--dark-bg-color: #{$dark-bg-color}
+	--dark-accent-color: orange
+	--dark-gradient: radial-gradient(circle, #{color.adjust($dark-bg-color, $lightness: 20%)} 0%, #{$dark-bg-color} 100%)
+
+	--light-color: black
+	$light-bg-color: white
+	--light-bg-color: #{$light-bg-color}
+	--light-accent-color: #b0efff
+	--light-gradient: radial-gradient(circle, #{$light-bg-color} 0%, #{color.adjust($light-bg-color, $lightness: -20%)} 100%)
+
+	// Swtiched in script
+	--theme-color: var(--light-color)
+	--theme-bg-color: var(--light-bg-color)
+	--theme-accent-color: var(--light-accent-color)
+	--theme-gradient: var(--light-gradient)
+@mixin theme
+	color: var(--theme-color)
+	background-color: var(--theme-bg-color)
+@mixin theme-accent
+	color: var(--light-color)
+	background-color: var(--theme-accent-color)
+@mixin theme-gradient
+
+//
+
+#App
+	background: var(--theme-gradient)
 	display: grid
 	grid-template-rows: 50px 1fr
 	margin: 0
 	justify-items: center
 	width: 100vw
 	height: 100vh
+	font-family: 'Questrial', sans-serif
 	&:hover
 		#top-bar
 			opacity: 1
+	
+h1,h2,h3,h4,h5
+	font-family: 'Hepta Slab', serif
 
 #ArtGrid
 	z-index: 1
@@ -45,7 +79,7 @@ $spotify-black: #191414
 	display: flex
 	flex-flow: row wrap
 	justify-content: center
-	align-items: flex-start
+	align-items: center
 	gap: 0
 .art-tile
 	position: relative
@@ -87,7 +121,7 @@ $spotify-black: #191414
 
 $bar-spacing: 12px
 #top-bar
-	z-index: 2
+	z-index: 4
 	box-sizing: border-box
 	margin: 0
 	padding: $bar-spacing
@@ -95,13 +129,43 @@ $bar-spacing: 12px
 	flex-flow: row nowrap
 	justify-content: space-between
 	align-items: center
-	background-color: white
-	color: black
 	width: 100%
 	position: absolute
 	opacity: 0
 	transition: opacity 0.2s ease-out
 	box-shadow: 0 5px 10px #0005
+	@include theme
+
+	input[type="range"]
+		-webkit-appearance: none
+		height: 7px
+		border-radius: 5px
+		background-size: 100% 100%
+		background-repeat: no-repeat
+		@include theme-accent
+
+	input[type="range"]::-webkit-slider-thumb
+		-webkit-appearance: none
+		height: 20px
+		width: 20px
+		border: 2px solid var(--theme-color)
+		border-radius: 50%
+		background: var(--theme-bg-color)
+		cursor: ew-resize
+		transition: background .3s ease-in-out
+
+	input[type=range]::-webkit-slider-runnable-track
+		-webkit-appearance: none
+		box-shadow: none
+		border: none
+		background: transparent
+
+	#dark-toggle
+		border: 2px solid var(--theme-color)
+		border-radius: 50%
+		@include theme
+		i
+			line-height: 1.5em
 
 .options
 	display: flex
@@ -119,18 +183,18 @@ $bar-spacing: 12px
 		p
 			font-size: 10pt
 			padding: 3px 6px
-			background-color: #ccc
-			color: black
 			border-radius: 5px
-		p, label
 			margin: 0
-
+			@include theme-accent
+		label
+			letter-spacing: 0.15em
 #logout
+	font-family: 'Questrial'
 	font-size: 10pt
 	padding: 3px 6px
-	color: white
-	background-color: $spotify-black
 	border-radius: 6px
+	border: 2px solid var(--theme-color)
+	@include theme
 
 #login-prompt
 	z-index: 3
@@ -145,14 +209,21 @@ $bar-spacing: 12px
 	text-align: center
 	h1
 		margin-bottom: 0
+		font-size: 52pt
 	p
 		margin-top: .5em
 		margin-bottom: 2em
-	div
-		padding: 50px
-		background-color: white
+	> div
+		padding: 40px
 		border-radius: 40px
+		display: flex
+		flex-flow: column nowrap
+		justify-content: center
+		align-items: center
+		box-shadow: 0 20px 10px #222a
+		@include theme
 	a
+		width: 50%
 		display: flex
 		flex-flow: row nowrap
 		justify-content: center
@@ -161,6 +232,7 @@ $bar-spacing: 12px
 		background-color: $spotify-green
 		padding: 10px
 		border-radius: 20px
+		
 		color: $spotify-black
 		img
 			height: 1.6em

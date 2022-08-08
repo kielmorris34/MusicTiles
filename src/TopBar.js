@@ -1,11 +1,20 @@
-function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime }) {
+import { useEffect } from 'react';
+import'./App.js'
+
+function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums }) {
+
+	// Set initial theme (dark/light)
+	useEffect(() => {
+		let theme = window.localStorage.getItem("theme");
+		if (theme) setTheme(theme);
+	}, []);
 
 	const REDIRECT_URI = "http://localhost:3000";
 
 	const logout = () => {
-		setTokens({});
 		window.localStorage.removeItem("token");
-		window.localStorage.removeItem("refresh_token");
+		window.localStorage.removeItem("refresh_token");setTokens({});
+		setAlbums([]);
 	}
 
 	const handleRowChange = (e) => {
@@ -16,9 +25,32 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 		setFlipTime(e.target.value);
 	};
 
+	function themeToggle() {
+		let theme = window.localStorage.getItem("theme");
+		if (!theme || theme === 'light') {
+			theme = 'dark';
+		} else {
+			theme = 'light';
+		}
+		setTheme(theme);
+	}
+
+	function setTheme(theme) {
+		const rootStyle = document.documentElement.style;
+		rootStyle.setProperty('--theme-color', `var(--${theme}-color)`)
+		rootStyle.setProperty('--theme-bg-color', `var(--${theme}-bg-color)`)
+		rootStyle.setProperty('--theme-accent-color', `var(--${theme}-accent-color)`)
+		rootStyle.setProperty('--theme-gradient', `var(--${theme}-gradient)`)
+
+		window.localStorage.setItem("theme", theme);
+	}
+
 	return (
 		<div id="top-bar">
 			<div className="options">
+				<button id="dark-toggle" onClick={themeToggle}>
+					<i className="fa-solid fa-lightbulb"></i>
+				</button>
 				<div>
 					<label>ROWS</label>
 					<input type="range" min="2" max="12" step="1" value={rows} onChange={handleRowChange}/>
@@ -31,7 +63,7 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 				</div>
 			</div>
 			{tokens.tokenType === "personal" ?
-				<button id="logout" onClick={logout}><strong>LOGOUT</strong></button>
+				<button id="logout" onClick={logout}>LOGOUT</button>
 			: "" }
 		</div>
 	);

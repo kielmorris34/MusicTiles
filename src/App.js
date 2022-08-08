@@ -53,27 +53,29 @@ function App() {
 		`&redirect_uri=${REDIRECT_URI}`;
 
 	useEffect(() => {
-		let storedToken = window.localStorage.getItem("token");
-		if (storedToken) {
-			let storedRefreshToken = window.localStorage.getItem("refresh_token");
-			setTokens({token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
-		} else if (window.location.search.length > 0) { // set upon redirect back from Spotify login
-				let code = (new URLSearchParams(window.location.search)).get('code');
-				callAuthApi("personal", "grant_type=authorization_code"
-					+ `&code=${code}`
+		if (albums.length === 0) {
+			let storedToken = window.localStorage.getItem("token");
+			if (storedToken) {
+				let storedRefreshToken = window.localStorage.getItem("refresh_token");
+				setTokens({token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
+			} else if (window.location.search.length > 0) { // set upon redirect back from Spotify login
+					let code = (new URLSearchParams(window.location.search)).get('code');
+					callAuthApi("personal", "grant_type=authorization_code"
+						+ `&code=${code}`
+						+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
+						+ `&client_id=${CLIENT_ID}`
+						+ `&client_secret=${CLIENT_SECRET}`
+					);
+					window.history.pushState("", "", REDIRECT_URI); // remove param from url
+			} else {
+				callAuthApi("general", "grant_type=client_credentials"
 					+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
 					+ `&client_id=${CLIENT_ID}`
 					+ `&client_secret=${CLIENT_SECRET}`
 				);
-				window.history.pushState("", "", REDIRECT_URI); // remove param from url
-		} else {
-			callAuthApi("general", "grant_type=client_credentials"
-				+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
-				+ `&client_id=${CLIENT_ID}`
-				+ `&client_secret=${CLIENT_SECRET}`
-			);
+			}
 		}
-	}, []);
+	}, [albums]);
 
 	useEffect(() => {
 		if (tokens.token && albums.length === 0) {
@@ -155,21 +157,25 @@ function App() {
 			}
 		});
 		//console.log(playlistData);
-		const playlistNum = Math.floor(Math.random() * data.playlists.items.length);
-		data = await axios.get(data.playlists.items[playlistNum].tracks.href, {
-			headers: {
-				Authorization: `Bearer ${tokens.token}`
-			},
-		});
-		console.log(data);
-		// Parse response to general album format
-		let albums = data.data.items.map(item => ({
-			name: item.track.album.name,
-			artist: item.track.album.artists[0].name,
-			art_url: item.track.album.images[0].url,
-			release_date: item.track.album.release_date,
-			id: item.track.album.id
-		}));
+		let albums = [];
+		let playlists = data.playlists.items;
+		for (const playlist of playlists) {
+			console.log(playlist);
+			data = await axios.get(playlist.tracks.href, {
+				headers: {
+					Authorization: `Bearer ${tokens.token}`
+				},
+			});
+			console.log(data);
+			// Parse response to general album format
+			albums = albums.concat(data.data.items.map(item => ({
+				name: item.track.album.name,
+				artist: item.track.album.artists[0].name,
+				art_url: item.track.album.images[0].url,
+				release_date: item.track.album.release_date,
+				id: item.track.album.id
+			})));
+		}
 		setAlbums(ensureMinAlbumCount(albums));
 	}
 
@@ -232,13 +238,13 @@ function App() {
 	}
 
 	return (
-		<div className="App">
+		<div id="App">
 			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID} 
 				rows={rows} setRows={setRows} flipTime={flipTime} 
-				setFlipTime={setFlipTime} />
+				setFlipTime={setFlipTime} setAlbums={setAlbums} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} />
 			{tokens.tokenType !== "personal" ?
-				<LoginPrompt authEndpoint={AUTH_ENDPOINT} />
+				<LoginPrompt authEndpoint={AUTH_ENDPOINT} tokens={tokens} />
 			: "" }
 		</div>
 	);

@@ -5,6 +5,7 @@ import Settings from './Settings';
 import TopBar from './TopBar';
 import LoginPrompt from './LoginPrompt'
 import axios from 'axios';
+import Details from './Details';
 
 function useWindowDimension() {
 	const [dimension, setDimension] = useState([
@@ -41,6 +42,7 @@ function App() {
 	const [tokens, setTokens] = useState({});
 	const [albums, setAlbums] = useState([]);
 	const [flipTime, setFlipTime] = useState(4);
+	const [details, setDetails] = useState();
 
 	const REDIRECT_URI = "http://localhost:3000";
 	const CLIENT_ID = "1667bd23e69245408998d6429c6b6949";
@@ -53,12 +55,17 @@ function App() {
 		`&redirect_uri=${REDIRECT_URI}`;
 
 	useEffect(() => {
-		if (albums.length === 0) {
+		if (albums.length === 0 && (tokens === undefined || tokens.tokenType !== 'personal')) {
+			console.log("running auth effect -- no albums, proceeding");
 			let storedToken = window.localStorage.getItem("token");
+			// GET STORED LOGIN - if exists
 			if (storedToken) {
+				console.log("stored personal token found")
 				let storedRefreshToken = window.localStorage.getItem("refresh_token");
 				setTokens({token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
-			} else if (window.location.search.length > 0) { // set upon redirect back from Spotify login
+			// GET ACCOUNT AUTH WITH CODE - code set upon redirect back from Spotify login
+			} else if (window.location.search.length > 0) {
+					console.log("code seen, getting account token")
 					let code = (new URLSearchParams(window.location.search)).get('code');
 					callAuthApi("personal", "grant_type=authorization_code"
 						+ `&code=${code}`
@@ -66,14 +73,19 @@ function App() {
 						+ `&client_id=${CLIENT_ID}`
 						+ `&client_secret=${CLIENT_SECRET}`
 					);
-					window.history.pushState("", "", REDIRECT_URI); // remove param from url
-			} else {
+			// GET GENERAL AUTH - to show generic albums
+			} else if (tokens.tokenType !== "personal") {
+				console.log("getting generic token")
+				console.log("current token type: " + tokens.tokenType);
 				callAuthApi("general", "grant_type=client_credentials"
 					+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
 					+ `&client_id=${CLIENT_ID}`
 					+ `&client_secret=${CLIENT_SECRET}`
 				);
 			}
+			window.history.pushState("", "", REDIRECT_URI); // remove param from url
+		} else {
+			console.log("running auth effect -- albums present, stopping")
 		}
 	}, [albums]);
 
@@ -88,15 +100,15 @@ function App() {
 	}, [tokens]);
 
 	useEffect(() => {
-		if (albums.length < count) {
+		if (albums.length > 0 && albums.length < count) {
 			setAlbums(ensureMinAlbumCount(albums));
 		}
 	}, [count]);
 
 	useEffect(() => {
-		setTileSize(height / rows);
-		setCount(Math.floor(width / (height / rows)) * rows);
-		console.log("effect: resize/rows");
+		const size = height / rows;
+		setTileSize(size);
+		setCount(Math.floor(width / size) * rows);
 	}, [rows, width, height]);
 
 	const getSpotifyPersonalAlbums = async () => {
@@ -111,7 +123,7 @@ function App() {
 				},
 			}).catch(function (error) {
 				if (error.response && error.response.status === 401) {
-					console.log("refresh 401");
+					console.log("refresh 401 personal albums");
 					callAuthApi("grant_type=refresh_token"
 						+ `&refresh_token=${tokens.refreshToken}`
 						+ `&client_id=${CLIENT_ID}`
@@ -132,6 +144,7 @@ function App() {
 				artist: item.album.artists[0].name,
 				art_url: item.album.images[0].url,
 				release_date: item.album.release_date,
+				spotify_link: item.album.external_urls.spotify,
 				id: item.album.id
 			})))
 		);
@@ -156,23 +169,21 @@ function App() {
 				);
 			}
 		});
-		//console.log(playlistData);
 		let albums = [];
 		let playlists = data.playlists.items;
 		for (const playlist of playlists) {
-			console.log(playlist);
 			data = await axios.get(playlist.tracks.href, {
 				headers: {
 					Authorization: `Bearer ${tokens.token}`
 				},
 			});
-			console.log(data);
 			// Parse response to general album format
 			albums = albums.concat(data.data.items.map(item => ({
 				name: item.track.album.name,
 				artist: item.track.album.artists[0].name,
 				art_url: item.track.album.images[0].url,
 				release_date: item.track.album.release_date,
+				spotify_link: item.track.album.external_urls.spotify,
 				id: item.track.album.id
 			})));
 		}
@@ -214,7 +225,6 @@ function App() {
 		if (response.status === 200) {
 			var data = JSON.parse(response.responseText);
 			console.log("success 200");
-			console.log(data);
 			if (authType === "personal") {
 				if (data.access_token !== undefined) {
 					window.localStorage.setItem("token", data.access_token);
@@ -222,16 +232,16 @@ function App() {
 				if (data.refresh_token !== undefined) {
 					window.localStorage.setItem("refresh_token", data.refresh_token);
 				}
-			}
+			} // don't bother storing a "general" token
 			setTokens({token: data.access_token, refreshToken: data.refresh_token, tokenType: authType });
-		} else if (this.status === 401) {
-			console.log("refresh 401");
+		} else if (response.status === 401) {
+			console.log("refresh 401, refreshToken: " + tokens.refreshToken);
 			callAuthApi("grant_type=refresh_token"
 				+ `&refresh_token=${tokens.refreshToken}`
 				+ `&client_id=${CLIENT_ID}`
 			);
 		} else {
-			console.log("bad response");
+			console.log("bad response on authType: " + authType);
 			console.log(response.responseText);
 			alert(response.responseText);
 		}
@@ -242,10 +252,9 @@ function App() {
 			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID} 
 				rows={rows} setRows={setRows} flipTime={flipTime} 
 				setFlipTime={setFlipTime} setAlbums={setAlbums} />
-			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} />
-			{tokens.tokenType !== "personal" ?
-				<LoginPrompt authEndpoint={AUTH_ENDPOINT} tokens={tokens} />
-			: "" }
+			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} setDetails={setDetails} details={details} />
+			<LoginPrompt authEndpoint={AUTH_ENDPOINT} tokens={tokens} />
+			<Details details={details} setDetails={setDetails} />
 		</div>
 	);
 }

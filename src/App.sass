@@ -21,14 +21,16 @@ $spotify-black: #191414
 	100%
 		opacity: 1
 
-@keyframes spin
+@keyframes grow
 	from
-		transform: rotate(0)
+		transform: scale(0)
 	to
-		transform: rotate(360deg)
-
-// Light/Dark mode theming
+		transform: scale(1)
 :root
+	--tile-size: 0
+	--enlarge-size: 90vmin
+
+	// Light/Dark mode theming
 	--dark-color: white
 	$dark-bg-color: #191414
 	--dark-bg-color: #{$dark-bg-color}
@@ -84,7 +86,6 @@ h1,h2,h3,h4,h5
 .art-tile
 	position: relative
 	overflow: clip
-	animation: fade-in 0.5s ease-in
 	img
 		position: absolute
 		left: 0
@@ -154,7 +155,7 @@ $bar-spacing: 12px
 		cursor: ew-resize
 		transition: background .3s ease-in-out
 
-	input[type=range]::-webkit-slider-runnable-track
+	input[type="range"]::-webkit-slider-runnable-track
 		-webkit-appearance: none
 		box-shadow: none
 		border: none
@@ -222,18 +223,70 @@ $bar-spacing: 12px
 		align-items: center
 		box-shadow: 0 20px 10px #222a
 		@include theme
-	a
-		width: 50%
+a.spotify-link
+	cursor: pointer
+	width: 50%
+	display: flex
+	flex-flow: row nowrap
+	justify-content: center
+	align-items: center
+	text-decoration: none
+	background-color: $spotify-green
+	padding: 10px
+	border-radius: 20px
+	margin: 0
+	
+	color: $spotify-black
+	img
+		height: 1.6em
+		margin: 0 0 0 7px
+
+#details
+	z-index: 4
+	position: absolute
+	left: 0
+	top: 0
+	width: 100vw
+	height: 100vh
+	display: flex
+	flex-flow: row nowrap
+	justify-content: center
+	align-items: center
+	text-align: center
+	background-color: #0005
+	> div
+		max-width: 90vh
+		max-height: 90vh
+		padding: 30px
+		border-radius: 40px
 		display: flex
-		flex-flow: row nowrap
+		flex-flow: column nowrap
 		justify-content: center
 		align-items: center
-		text-decoration: none
-		background-color: $spotify-green
-		padding: 10px
-		border-radius: 20px
-		
-		color: $spotify-black
-		img
-			height: 1.6em
-			margin-left: 7px
+		box-shadow: 0 20px 10px #000c
+		@media (prefers-reduced-motion: no-preference)
+			animation: grow 0.5s ease-in-out
+		> img
+			flex-shrink: 1
+			flex-basis: 80vh
+			height: 80vh
+			max-width: 80vh
+			max-height: 80vh
+			min-width: 50px
+			min-height: 50px
+			margin-bottom: 20px
+		@include theme
+		h3,h4
+			font-family: 'Questrial'
+			margin: 0.2em
+			text-align: left
+		#detail-text-box
+			width: 100%
+			display: flex
+			flex-flow: row nowrap
+			justify-content: space-between
+			align-items: center
+			> a
+				width: fit-content
+				margin-left: 30px
+

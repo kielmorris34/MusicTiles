@@ -20,15 +20,17 @@
     opacity: 1;
   }
 }
-@keyframes spin {
+@keyframes grow {
   from {
-    transform: rotate(0);
+    transform: scale(0);
   }
   to {
-    transform: rotate(360deg);
+    transform: scale(1);
   }
 }
 :root {
+  --tile-size: 0;
+  --enlarge-size: 90vmin;
   --dark-color: white;
   --dark-bg-color: #191414;
   --dark-accent-color: orange;
@@ -75,7 +77,6 @@ h1, h2, h3, h4, h5 {
 .art-tile {
   position: relative;
   overflow: clip;
-  animation: fade-in 0.5s ease-in;
 }
 .art-tile img {
   position: absolute;
@@ -236,7 +237,9 @@ h1, h2, h3, h4, h5 {
   color: var(--theme-color);
   background-color: var(--theme-bg-color);
 }
-#login-prompt a {
+
+a.spotify-link {
+  cursor: pointer;
   width: 50%;
   display: flex;
   flex-flow: row nowrap;
@@ -246,11 +249,71 @@ h1, h2, h3, h4, h5 {
   background-color: #1db954;
   padding: 10px;
   border-radius: 20px;
+  margin: 0;
   color: #191414;
 }
-#login-prompt a img {
+a.spotify-link img {
   height: 1.6em;
-  margin-left: 7px;
+  margin: 0 0 0 7px;
+}
+
+#details {
+  z-index: 4;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.3333333333);
+}
+#details > div {
+  max-width: 90vh;
+  max-height: 90vh;
+  padding: 30px;
+  border-radius: 40px;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 20px 10px rgba(0, 0, 0, 0.8);
+  color: var(--theme-color);
+  background-color: var(--theme-bg-color);
+}
+@media (prefers-reduced-motion: no-preference) {
+  #details > div {
+    animation: grow 0.5s ease-in-out;
+  }
+}
+#details > div > img {
+  flex-shrink: 1;
+  flex-basis: 80vh;
+  height: 80vh;
+  max-width: 80vh;
+  max-height: 80vh;
+  min-width: 50px;
+  min-height: 50px;
+  margin-bottom: 20px;
+}
+#details > div h3, #details > div h4 {
+  font-family: "Questrial";
+  margin: 0.2em;
+  text-align: left;
+}
+#details > div #detail-text-box {
+  width: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+#details > div #detail-text-box > a {
+  width: fit-content;
+  margin-left: 30px;
 }
 
 /*# sourceMappingURL=App.css.map */

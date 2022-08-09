@@ -9,11 +9,10 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 		if (theme) setTheme(theme);
 	}, []);
 
-	const REDIRECT_URI = "http://localhost:3000";
-
 	const logout = () => {
 		window.localStorage.removeItem("token");
-		window.localStorage.removeItem("refresh_token");setTokens({});
+		window.localStorage.removeItem("refresh_token");
+		setTokens({});
 		setAlbums([]);
 	}
 

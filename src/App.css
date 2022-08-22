@@ -75,11 +75,13 @@ h1, h2, h3, h4, h5 {
 }
 
 .art-tile {
+  cursor: pointer;
   position: relative;
   overflow: clip;
 }
 .art-tile img {
   position: absolute;
+  backface-visibility: hidden;
   left: 0;
   top: 0;
   width: 100%;
@@ -160,6 +162,7 @@ h1, h2, h3, h4, h5 {
   background: transparent;
 }
 #top-bar #dark-toggle {
+  cursor: pointer;
   border: 2px solid var(--theme-color);
   border-radius: 50%;
   color: var(--theme-color);
@@ -197,6 +200,7 @@ h1, h2, h3, h4, h5 {
 }
 
 #logout {
+  cursor: pointer;
   font-family: "Questrial";
   font-size: 10pt;
   padding: 3px 6px;

@@ -84,10 +84,12 @@ h1,h2,h3,h4,h5
 	align-items: center
 	gap: 0
 .art-tile
+	cursor: pointer
 	position: relative
 	overflow: clip
 	img
 		position: absolute
+		backface-visibility: hidden // fix for blurry transition in firefox
 		left: 0
 		top: 0
 		width: 100%
@@ -162,6 +164,7 @@ $bar-spacing: 12px
 		background: transparent
 
 	#dark-toggle
+		cursor: pointer
 		border: 2px solid var(--theme-color)
 		border-radius: 50%
 		@include theme
@@ -190,6 +193,7 @@ $bar-spacing: 12px
 		label
 			letter-spacing: 0.15em
 #logout
+	cursor: pointer
 	font-family: 'Questrial'
 	font-size: 10pt
 	padding: 3px 6px

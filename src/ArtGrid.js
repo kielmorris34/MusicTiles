@@ -7,11 +7,11 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 		if (albums.length > 0) {
 			flipInterval = window.setInterval(() => {
 				// choose a random art-tile img and change src to next indexed album art
-				let shownAlbums = [...document.getElementById("ArtGrid").children].map(tile => tile.firstChild.getAttribute("src"));
+				let shownAlbums = [...document.getElementById("ArtGrid").children].map(tile => tile.firstChild.getAttribute("spotifylink"));
 				let index;
 				do {
 					index = Math.floor(Math.random() * albums.length);
-				} while (shownAlbums.includes(albums[index].src));  // doesn't work for some reason?? So there's dupes sometimes
+				} while (shownAlbums.includes(albums[index].spotify_link));  // prevent dupes
 
 				const artGrid = document.getElementById("ArtGrid");
 				// choose tile to flip

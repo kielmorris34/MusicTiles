@@ -44,15 +44,13 @@ function App() {
 	const [flipTime, setFlipTime] = useState(4);
 	const [details, setDetails] = useState();
 
-	const REDIRECT_URI = "http://localhost:3000";
+	//const REDIRECT_URI = "http://localhost:3000";
+	// const REDIRECT_URI = "https://km-music-tiles.netlify.app/";
+	const REDIRECT_URI = window.location.href.split('?')[0];
+	console.log(REDIRECT_URI);
 	const CLIENT_ID = "1667bd23e69245408998d6429c6b6949";
 	const CLIENT_SECRET = "e44899b0f5114a64bd5bcecdb6036cf3";
 	const API = "https://api.spotify.com/v1/";
-	const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize?" +
-		"response_type=code" +
-		`&client_id=${CLIENT_ID}` +
-		"&scope=user-library-read" +
-		`&redirect_uri=${REDIRECT_URI}`;
 
 	useEffect(() => {
 		if (albums.length === 0 && (tokens === undefined || tokens.tokenType !== 'personal')) {
@@ -62,17 +60,19 @@ function App() {
 			if (storedToken) {
 				console.log("stored personal token found")
 				let storedRefreshToken = window.localStorage.getItem("refresh_token");
-				setTokens({token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
+				setTokens({ token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
+
 			// GET ACCOUNT AUTH WITH CODE - code set upon redirect back from Spotify login
 			} else if (window.location.search.length > 0) {
-					console.log("code seen, getting account token")
-					let code = (new URLSearchParams(window.location.search)).get('code');
-					callAuthApi("personal", "grant_type=authorization_code"
-						+ `&code=${code}`
-						+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
-						+ `&client_id=${CLIENT_ID}`
-						+ `&client_secret=${CLIENT_SECRET}`
-					);
+				console.log("code seen, getting account token")
+				let code = (new URLSearchParams(window.location.search)).get('code');
+				callAuthApi("personal", "grant_type=authorization_code"
+					+ `&code=${code}`
+					+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
+					+ `&client_id=${CLIENT_ID}`
+					+ `&code_verifier=${localStorage.getItem("code_verifier")}`
+				);
+
 			// GET GENERAL AUTH - to show generic albums
 			} else if (tokens.tokenType !== "personal") {
 				console.log("getting generic token")
@@ -117,7 +117,7 @@ function App() {
 		let offset = 0;
 		let theresMore = true;
 		do {
-			const {data} = await axios.get(API + `me/albums?limit=${limit}&offset=${offset}`, {
+			const { data } = await axios.get(API + `me/albums?limit=${limit}&offset=${offset}`, {
 				headers: {
 					Authorization: `Bearer ${tokens.token}`
 				},
@@ -156,7 +156,7 @@ function App() {
 		const limit = 50;
 		let offset = 0;
 		let theresMore = true;
-		let {data} = await axios.get(API + `browse/featured-playlists`, {
+		let { data } = await axios.get(API + `browse/featured-playlists`, {
 			headers: {
 				Authorization: `Bearer ${tokens.token}`
 			},
@@ -204,9 +204,57 @@ function App() {
 		return albumArr;
 	}
 
+	function generateRandomString(length) {
+		let text = '';
+		const possible =
+			'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+		for (let i = 0; i < length; i++) {
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+		}
+		return text;
+	}
+
+	async function generateCodeChallenge(codeVerifier) {
+		const digest = await crypto.subtle.digest(
+			'SHA-256',
+			new TextEncoder().encode(codeVerifier),
+		);
+
+		return btoa(String.fromCharCode(...new Uint8Array(digest)))
+			.replace(/=/g, '')
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_');
+	}
+
+	function redirectToSpotifyAuthorizeEndpoint() {
+		const codeVerifier = generateRandomString(64);
+
+		generateCodeChallenge(codeVerifier).then((code_challenge) => {
+			window.localStorage.setItem('code_verifier', codeVerifier);
+
+			window.location = generateUrlWithSearchParams("https://accounts.spotify.com/authorize?",
+				{
+					response_type: 'code',
+					client_id: CLIENT_ID,
+					scope: 'user-library-read',
+					code_challenge_method: 'S256',
+					code_challenge,
+					redirect_uri: REDIRECT_URI
+				}
+			);
+		});
+	}
+
+	function generateUrlWithSearchParams(url, params) {
+		const urlObject = new URL(url);
+		urlObject.search = new URLSearchParams(params).toString();
+		return urlObject.toString();
+	}
+
 	function callAuthApi(authType, body) {
 		let xhr = new XMLHttpRequest();
-		xhr.open("POST", "http://accounts.spotify.com/api/token");
+		xhr.open("POST", "https://accounts.spotify.com/api/token");
 		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		xhr.setRequestHeader('Authorization', 'Basic ' + btoa(CLIENT_ID + ":" + CLIENT_SECRET));
 		xhr.send(body);
@@ -233,7 +281,7 @@ function App() {
 					window.localStorage.setItem("refresh_token", data.refresh_token);
 				}
 			} // don't bother storing a "general" token
-			setTokens({token: data.access_token, refreshToken: data.refresh_token, tokenType: authType });
+			setTokens({ token: data.access_token, refreshToken: data.refresh_token, tokenType: authType });
 		} else if (response.status === 401) {
 			console.log("refresh 401, refreshToken: " + tokens.refreshToken);
 			callAuthApi("grant_type=refresh_token"
@@ -249,11 +297,11 @@ function App() {
 
 	return (
 		<div id="App">
-			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID} 
-				rows={rows} setRows={setRows} flipTime={flipTime} 
+			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID}
+				rows={rows} setRows={setRows} flipTime={flipTime}
 				setFlipTime={setFlipTime} setAlbums={setAlbums} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} setDetails={setDetails} details={details} />
-			<LoginPrompt authEndpoint={AUTH_ENDPOINT} tokens={tokens} />
+			<LoginPrompt redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} tokens={tokens} />
 			<Details details={details} setDetails={setDetails} />
 		</div>
 	);

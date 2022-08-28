@@ -192,6 +192,12 @@ $bar-spacing: 12px
 			@include theme-accent
 		label
 			letter-spacing: 0.15em
+			&.radio-label
+				letter-spacing: normal
+				color: var(--theme-color)
+				margin-right: .5em
+
+
 #logout
 	cursor: pointer
 	font-family: 'Questrial'
@@ -284,6 +290,11 @@ a.spotify-link
 			font-family: 'Questrial'
 			margin: 0.2em
 			text-align: left
+			span
+				background-color: var(--theme-accent-color)
+				border-radius: 5px
+				color: black
+				padding: 5px
 		#detail-text-box
 			width: 100%
 			display: flex

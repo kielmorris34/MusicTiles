@@ -43,6 +43,9 @@ function App() {
 	const [albums, setAlbums] = useState([]);
 	const [flipTime, setFlipTime] = useState(4);
 	const [details, setDetails] = useState();
+	const [contentMode, setContentMode] = useState("ALBUMS");
+	const [playlists, setPlaylists] = useState({});
+	const [selectedPlaylist, setSelectedPlaylist] = useState();
 
 	//const REDIRECT_URI = "http://localhost:3000";
 	// const REDIRECT_URI = "https://km-music-tiles.netlify.app/";
@@ -52,7 +55,19 @@ function App() {
 	const CLIENT_SECRET = "e44899b0f5114a64bd5bcecdb6036cf3";
 	const API = "https://api.spotify.com/v1/";
 
+	// STARTUP
 	useEffect(() => {
+		// GET MODE FROM STORAGE
+		const storedContentMode = window.localStorage.getItem("content_mode");
+		if (!storedContentMode) {
+			setContentMode("ALBUMS");
+			document.querySelector("#radio-albums").checked = true;
+		} else {
+			setContentMode(storedContentMode);
+			document.querySelector(`#radio-${storedContentMode.toLowerCase()}`).checked = true;
+		}
+
+		// AUTH
 		if (albums.length === 0 && (tokens === undefined || tokens.tokenType !== 'personal')) {
 			console.log("running auth effect -- no albums, proceeding");
 			let storedToken = window.localStorage.getItem("token");
@@ -89,35 +104,76 @@ function App() {
 		}
 	}, [albums]);
 
+	// GET CONTENT UPON TOKEN OR MODE CHANGE
 	useEffect(() => {
-		if (tokens.token && albums.length === 0) {
-			if (tokens.tokenType === "personal") {
-				getSpotifyPersonalAlbums();
-			} else { // general
-				getSpotifyGeneralAlbums();
+		if (tokens.token) {
+			if (albums.length === 0) {
+				if (tokens.tokenType === "personal") {
+					getSpotifyPersonalContent();
+				} else { // general
+					getSpotifyGeneralAlbums();
+				}
+			}
+			if (Object.keys(playlists).length === 0) {
+				getSpotifyPersonalPlaylists();
 			}
 		}
-	}, [tokens]);
+	}, [tokens, contentMode, selectedPlaylist]);
 
+	// ENSURE THERE ARE ENOUGH ALBUMS UPON WINDOW/ROW CHANGE
 	useEffect(() => {
 		if (albums.length > 0 && albums.length < count) {
 			setAlbums(ensureMinAlbumCount(albums));
 		}
 	}, [count]);
 
+	// WINDOW RE-SIZE
 	useEffect(() => {
 		const size = height / rows;
 		setTileSize(size);
 		setCount(Math.floor(width / size) * rows);
 	}, [rows, width, height]);
 
-	const getSpotifyPersonalAlbums = async () => {
+	const mapSpotifyPersonalContent = (responses) => {
+		let newAlbums = [];
+		if (contentMode === "ALBUMS") {
+			responses.forEach(data =>
+				newAlbums = newAlbums.concat(data.items.map(item => ({
+					name: item.album.name,
+					artist: item.album.artists[0].name,
+					art_url: item.album.images[0].url,
+					release_date: item.album.release_date,
+					spotify_link: item.album.external_urls.spotify,
+					id: item.album.id
+				})))
+			);
+		} else { // SONGS, PLAYLIST
+			responses.forEach(data => {
+				newAlbums = newAlbums.concat(data.items.map(item => ({
+					track: item.track.name,
+					name: item.track.album.name,
+					artist: item.track.album.artists[0].name,
+					art_url: item.track.album.images[0].url,
+					release_date: item.track.album.release_date,
+					spotify_link: item.track.album.external_urls.spotify,
+					id: item.track.album.id
+				})))
+			});
+		}
+		return newAlbums;
+	}
+
+	const getSpotifyPersonalContent = async () => {
+		let currContentMode = contentMode;
+		let currSelectedPlaylist = selectedPlaylist;
+
 		let responses = [];
 		const limit = 50;
 		let offset = 0;
 		let theresMore = true;
+		let endpoint = contentMode === "ALBUMS" ? "me/albums" : (contentMode === "SONGS" ? "me/tracks" : `playlists/${playlists[selectedPlaylist]}/tracks`);
 		do {
-			const { data } = await axios.get(API + `me/albums?limit=${limit}&offset=${offset}`, {
+			const { data } = await axios.get(API + `${endpoint}?limit=${limit}&offset=${offset}`, {
 				headers: {
 					Authorization: `Bearer ${tokens.token}`
 				},
@@ -136,19 +192,51 @@ function App() {
 			theresMore = offset < data.total;
 		} while (theresMore);
 
+		// Check to see if grabbed data is still needed, cancel if not
+		if (currContentMode !== contentMode || currSelectedPlaylist !== selectedPlaylist) return;
+
 		// Parse response to general format
-		let newAlbums = [];
-		responses.forEach(data =>
-			newAlbums = newAlbums.concat(data.items.map(item => ({
-				name: item.album.name,
-				artist: item.album.artists[0].name,
-				art_url: item.album.images[0].url,
-				release_date: item.album.release_date,
-				spotify_link: item.album.external_urls.spotify,
-				id: item.album.id
-			})))
-		);
+		let newAlbums = mapSpotifyPersonalContent(responses);
 		setAlbums(ensureMinAlbumCount(newAlbums));
+	}
+
+	const getSpotifyPersonalPlaylists = async () => {
+		let responses = [];
+		const limit = 50;
+		let offset = 0;
+		let theresMore = true;
+		do {
+			const { data } = await axios.get(API + `me/playlists?limit=${limit}&offset=${offset}`, {
+				headers: {
+					Authorization: `Bearer ${tokens.token}`
+				},
+			}).catch(function (error) {
+				if (error.response && error.response.status === 401) {
+					console.log("refresh 401 personal playlists");
+					callAuthApi("grant_type=refresh_token"
+						+ `&refresh_token=${tokens.refreshToken}`
+						+ `&client_id=${CLIENT_ID}`
+					);
+				}
+			})
+			responses.push(data);
+
+			offset += limit;
+			theresMore = offset < data.total;
+		} while (theresMore);
+
+		var newPlaylists = {};
+		responses.forEach(data => {
+			console.log(data);
+			data.items.map(item => (
+				newPlaylists[item.name] = item.id
+			));
+		});
+		setPlaylists(newPlaylists);
+		const playlistNames = Object.keys(newPlaylists);
+		if (playlistNames.length > 0) {
+			setSelectedPlaylist(playlistNames[0]);
+		}
 	}
 
 	const getSpotifyGeneralAlbums = async () => {
@@ -299,7 +387,9 @@ function App() {
 		<div id="App">
 			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID}
 				rows={rows} setRows={setRows} flipTime={flipTime}
-				setFlipTime={setFlipTime} setAlbums={setAlbums} />
+				setFlipTime={setFlipTime} setAlbums={setAlbums}
+				contentMode={contentMode} setContentMode={setContentMode}
+				playlists={playlists} selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} setDetails={setDetails} details={details} />
 			<LoginPrompt redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} tokens={tokens} />
 			<Details details={details} setDetails={setDetails} />

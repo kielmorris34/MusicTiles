@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import'./App.js'
 
-function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums }) {
+function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums, contentMode, setContentMode, playlists, selectedPlaylist, setSelectedPlaylist }) {
 
 	// Set initial theme (dark/light)
 	useEffect(() => {
@@ -23,6 +23,17 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 	const handleFlipTimeChange = (e) => {
 		setFlipTime(e.target.value);
 	};
+
+	const handleContentModeChange = (e) => {
+		setAlbums([]);
+		setContentMode(e.target.value)
+		window.localStorage.setItem("content_mode", e.target.value);
+	}
+
+	const handlePlaylistChange = (e) => {
+		setAlbums([]);
+		setSelectedPlaylist(e.target.value);
+	}
 
 	function themeToggle() {
 		let theme = window.localStorage.getItem("theme");
@@ -59,6 +70,24 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 					<label>FLIP RATE</label>
 					<input type="range" min="0.5" max="30" step="0.5" value={flipTime} onChange={handleFlipTimeChange}/>
 					<p>{flipTime} seconds</p>
+				</div>
+				<div>
+					<label>CONTENT</label>
+					<div onChange={handleContentModeChange}>
+						<input type="radio" value="ALBUMS" name="content_mode" id="radio-albums" />
+						<label className='radio-label'>Albums</label>
+						<input type="radio" value="SONGS" name="content_mode" id="radio-songs" />
+						<label className='radio-label'>Songs</label>
+						<input type="radio" value="PLAYLIST" name="content_mode" id="radio-playlist" />
+						<label className='radio-label'>Playlist</label>
+					</div>
+					{ contentMode === "PLAYLIST" ? 
+						<select name="playlist" onChange={handlePlaylistChange} value={selectedPlaylist}>
+							{ Object.keys(playlists).map(playlist => (	
+								<option value={playlist}>{playlist}</option>
+							))}
+						</select>
+					: ""}
 				</div>
 			</div>
 			{tokens.tokenType === "personal" ?

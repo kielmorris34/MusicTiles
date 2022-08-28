@@ -198,6 +198,11 @@ h1, h2, h3, h4, h5 {
 .options > div label {
   letter-spacing: 0.15em;
 }
+.options > div label.radio-label {
+  letter-spacing: normal;
+  color: var(--theme-color);
+  margin-right: 0.5em;
+}
 
 #logout {
   cursor: pointer;
@@ -307,6 +312,12 @@ a.spotify-link img {
   font-family: "Questrial";
   margin: 0.2em;
   text-align: left;
+}
+#details > div h3 span, #details > div h4 span {
+  background-color: var(--theme-accent-color);
+  border-radius: 5px;
+  color: black;
+  padding: 5px;
 }
 #details > div #detail-text-box {
   width: 100%;

@@ -11,7 +11,7 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 				let index;
 				do {
 					index = Math.floor(Math.random() * albums.length);
-				} while (shownAlbums.includes(albums[index].spotify_link));  // prevent dupes
+				} while (shownAlbums.includes(albums[index].alt));  // prevent dupes -- DOESN'T WORK :(
 
 				const artGrid = document.getElementById("ArtGrid");
 				// choose tile to flip
@@ -33,6 +33,7 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 					tileImg.setAttribute("albumName", albums[index].name);
 					tileImg.setAttribute("albumArtist", albums[index].artist);
 					tileImg.setAttribute("spotifyLink", albums[index].spotify_link);
+					tileImg.setAttribute("track", albums[index].track);
 					tileImg.style.setProperty("display", "block");
 				}, 500); // half of flip-animation duration
 
@@ -49,7 +50,8 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 			name: e.target.getAttribute("albumname"),
 			artist: e.target.getAttribute("albumartist"),
 			art_url: e.target.getAttribute("src"),
-			spotify_link: e.target.getAttribute("spotifylink")
+			spotify_link: e.target.getAttribute("spotifylink"),
+			track: e.target.getAttribute("track")
 		});
 	}
 
@@ -59,7 +61,7 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 				<div key={album.id} className="art-tile" style={{width: tileSize, height: tileSize}} 
 					onClick={setAlbumAsDetails}>
 					<img src={album.art_url} alt={`${album.name} by ${album.artist}`} 
-						albumname={album.name} albumartist={album.artist} spotifylink={album.spotify_link}/>
+						albumname={album.name} albumartist={album.artist} spotifylink={album.spotify_link} track={album.track}/>
 				</div>
 			))}
 		</div>

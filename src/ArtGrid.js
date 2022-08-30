@@ -34,6 +34,7 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 					tileImg.setAttribute("albumArtist", albums[index].artist);
 					tileImg.setAttribute("spotifyLink", albums[index].spotify_link);
 					tileImg.setAttribute("track", albums[index].track);
+					tileImg.setAttribute("tracknumber", albums[index].track_number);
 					tileImg.style.setProperty("display", "block");
 				}, 500); // half of flip-animation duration
 
@@ -51,7 +52,8 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 			artist: e.target.getAttribute("albumartist"),
 			art_url: e.target.getAttribute("src"),
 			spotify_link: e.target.getAttribute("spotifylink"),
-			track: e.target.getAttribute("track")
+			track: e.target.getAttribute("track"),
+			track_number: e.target.getAttribute("tracknumber")
 		});
 	}
 
@@ -61,7 +63,8 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 				<div key={album.id} className="art-tile" style={{width: tileSize, height: tileSize}} 
 					onClick={setAlbumAsDetails}>
 					<img src={album.art_url} alt={`${album.name} by ${album.artist}`} 
-						albumname={album.name} albumartist={album.artist} spotifylink={album.spotify_link} track={album.track}/>
+						albumname={album.name} albumartist={album.artist} spotifylink={album.spotify_link} 
+						track={album.track} tracknumber={album.track_number} />
 				</div>
 			))}
 		</div>

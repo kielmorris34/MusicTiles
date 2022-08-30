@@ -3,8 +3,8 @@
 // vars
 $spotify-green: #1db954
 $spotify-black: #191414
-//
 
+// animations
 @keyframes flip-tile
 	from
 		transform: rotateX(0)
@@ -26,6 +26,14 @@ $spotify-black: #191414
 		transform: scale(0)
 	to
 		transform: scale(1)
+
+@keyframes spin
+	from
+		transform: rotate(0)
+	to
+		transform: rotate(360deg)
+
+// style
 :root
 	--tile-size: 0
 	--enlarge-size: 90vmin
@@ -208,7 +216,7 @@ $bar-spacing: 12px
 	@include theme
 
 #login-prompt
-	z-index: 3
+	z-index: 99
 	position: absolute
 	left: 0
 	top: 0
@@ -220,6 +228,7 @@ $bar-spacing: 12px
 	text-align: center
 	h1
 		margin-bottom: 0
+		margin-top: 0
 		font-size: 52pt
 	p
 		margin-top: .5em
@@ -288,13 +297,15 @@ a.spotify-link
 		@include theme
 		h3,h4
 			font-family: 'Questrial'
+			font-weight: normal
 			margin: 0.2em
 			text-align: left
+			vertical-align: center
 			span
-				background-color: var(--theme-accent-color)
+				border: 1px solid var(--theme-color)
 				border-radius: 5px
-				color: black
 				padding: 5px
+				font-size: .7em
 		#detail-text-box
 			width: 100%
 			display: flex
@@ -305,3 +316,21 @@ a.spotify-link
 				width: fit-content
 				margin-left: 30px
 
+#loading
+	z-index: 1
+	position: absolute
+	left: 0
+	top: 0
+	width: 100vw
+	height: 100vh
+	display: flex
+	justify-content: center
+	align-items: center
+	text-align: center
+	h1
+		margin-bottom: 0
+		font-size: 52pt
+		color: var(--theme-color)
+		@media (prefers-reduced-motion: no-preference)
+			animation: spin 0.5s linear
+			animation-iteration-count: infinite

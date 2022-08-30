@@ -19,8 +19,8 @@ function Details({ details, setDetails }) {
 					<img src={details.art_url} />
 					<div id="detail-text-box">
 						<div>
-							{details.track ? 
-								<h3>{details.track}<span>TRACK</span></h3>
+							{details.track != undefined && details.track !== "undefined" ? 
+								<h3>{details.track}&nbsp;&nbsp;&nbsp;<span>track {details.track_number}</span></h3>
 							: ""}
 							<h3>{details.name}</h3>
 							<h4>{details.artist}</h4>

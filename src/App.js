@@ -6,6 +6,7 @@ import TopBar from './TopBar';
 import LoginPrompt from './LoginPrompt'
 import axios from 'axios';
 import Details from './Details';
+import LoadingSpinner from './LoadingSpinner';
 
 function useWindowDimension() {
 	const [dimension, setDimension] = useState([
@@ -114,7 +115,7 @@ function App() {
 					getSpotifyGeneralAlbums();
 				}
 			}
-			if (Object.keys(playlists).length === 0) {
+			if (Object.keys(playlists).length === 0 && tokens.tokenType === "personal") {
 				getSpotifyPersonalPlaylists();
 			}
 		}
@@ -144,19 +145,20 @@ function App() {
 					art_url: item.album.images[0].url,
 					release_date: item.album.release_date,
 					spotify_link: item.album.external_urls.spotify,
-					id: item.album.id
+					id: item.album.id,
 				})))
 			);
 		} else { // SONGS, PLAYLIST
 			responses.forEach(data => {
 				newAlbums = newAlbums.concat(data.items.map(item => ({
 					track: item.track.name,
+					track_number: item.track.track_number,
 					name: item.track.album.name,
 					artist: item.track.album.artists[0].name,
 					art_url: item.track.album.images[0].url,
 					release_date: item.track.album.release_date,
 					spotify_link: item.track.album.external_urls.spotify,
-					id: item.track.album.id
+					id: item.track.album.id,
 				})))
 			});
 		}
@@ -180,7 +182,7 @@ function App() {
 			}).catch(function (error) {
 				if (error.response && error.response.status === 401) {
 					console.log("refresh 401 personal albums");
-					callAuthApi("grant_type=refresh_token"
+					callAuthApi("personal", "grant_type=refresh_token"
 						+ `&refresh_token=${tokens.refreshToken}`
 						+ `&client_id=${CLIENT_ID}`
 					);
@@ -213,7 +215,7 @@ function App() {
 			}).catch(function (error) {
 				if (error.response && error.response.status === 401) {
 					console.log("refresh 401 personal playlists");
-					callAuthApi("grant_type=refresh_token"
+					callAuthApi("personal", "grant_type=refresh_token"
 						+ `&refresh_token=${tokens.refreshToken}`
 						+ `&client_id=${CLIENT_ID}`
 					);
@@ -227,7 +229,6 @@ function App() {
 
 		var newPlaylists = {};
 		responses.forEach(data => {
-			console.log(data);
 			data.items.map(item => (
 				newPlaylists[item.name] = item.id
 			));
@@ -251,7 +252,7 @@ function App() {
 		}).catch(function (error) {
 			if (error.response && error.response.status === 401) {
 				console.log("refresh 401");
-				callAuthApi("grant_type=refresh_token"
+				callAuthApi("general", "grant_type=refresh_token"
 					+ `&refresh_token=${tokens.refreshToken}`
 					+ `&client_id=${CLIENT_ID}`
 				);
@@ -265,14 +266,16 @@ function App() {
 					Authorization: `Bearer ${tokens.token}`
 				},
 			});
+			// Get rid of empty tracks, not sure why they are there sometimes
+			const trackObjs = data.data.items.filter(item => item.track != null);
 			// Parse response to general album format
-			albums = albums.concat(data.data.items.map(item => ({
+			albums = albums.concat(trackObjs.map(item => ({
 				name: item.track.album.name,
 				artist: item.track.album.artists[0].name,
 				art_url: item.track.album.images[0].url,
 				release_date: item.track.album.release_date,
 				spotify_link: item.track.album.external_urls.spotify,
-				id: item.track.album.id
+				id: item.track.album.id,
 			})));
 		}
 		setAlbums(ensureMinAlbumCount(albums));
@@ -372,7 +375,7 @@ function App() {
 			setTokens({ token: data.access_token, refreshToken: data.refresh_token, tokenType: authType });
 		} else if (response.status === 401) {
 			console.log("refresh 401, refreshToken: " + tokens.refreshToken);
-			callAuthApi("grant_type=refresh_token"
+			callAuthApi(authType, "grant_type=refresh_token"
 				+ `&refresh_token=${tokens.refreshToken}`
 				+ `&client_id=${CLIENT_ID}`
 			);
@@ -392,6 +395,7 @@ function App() {
 				playlists={playlists} selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} setDetails={setDetails} details={details} />
 			<LoginPrompt redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} tokens={tokens} />
+			<LoadingSpinner albums={albums} />
 			<Details details={details} setDetails={setDetails} />
 		</div>
 	);

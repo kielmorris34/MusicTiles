@@ -9,7 +9,7 @@ function LoginPrompt({ redirectToSpotifyAuthorizeEndpoint, tokens }) {
 			<div id="login-prompt">
 				<div>
 					<h1>MUSIC TILES</h1>
-					<p>See your albums flipped through</p>
+					<p>See your collection flipped through!</p>
 						<a onClick={redirectToSpotifyAuthorizeEndpoint} className="spotify-link">
 							<strong>Login to</strong> <img src={spotifyLogo}/>
 						</a>

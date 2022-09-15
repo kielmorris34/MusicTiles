@@ -51,7 +51,6 @@ function App() {
 	//const REDIRECT_URI = "http://localhost:3000";
 	// const REDIRECT_URI = "https://km-music-tiles.netlify.app/";
 	const REDIRECT_URI = window.location.href.split('?')[0];
-	console.log(REDIRECT_URI);
 	const CLIENT_ID = "1667bd23e69245408998d6429c6b6949";
 	const CLIENT_SECRET = "e44899b0f5114a64bd5bcecdb6036cf3";
 	const API = "https://api.spotify.com/v1/";
@@ -199,7 +198,7 @@ function App() {
 
 		// Parse response to general format
 		let newAlbums = mapSpotifyPersonalContent(responses);
-		setAlbums(ensureMinAlbumCount(newAlbums));
+		setAlbums(backloadDupeAlbums(ensureMinAlbumCount(newAlbums)));
 	}
 
 	const getSpotifyPersonalPlaylists = async () => {
@@ -295,6 +294,25 @@ function App() {
 		return albumArr;
 	}
 
+	function backloadDupeAlbums(albumArr) {
+		let seen = new Set();
+		let backloaded = [];
+		albumArr.forEach(album => {
+			if (seen.has(album.art_url)) {
+				backloaded.push(album);
+			} else {
+				backloaded.splice(0, 0, album);
+				seen.add(album.art_url);
+			}
+		})
+		return backloaded;
+	}
+
+	function getShuffledAlbumsCopy() {
+		const shuffled = [...albums].sort(() => 0.5 - Math.random());
+		return backloadDupeAlbums(shuffled);
+	}
+
 	function generateRandomString(length) {
 		let text = '';
 		const possible =
@@ -386,6 +404,64 @@ function App() {
 		}
 	}
 
+	function flipTile(tileIndex, album) {
+		const artGrid = document.getElementById("ArtGrid");
+		// choose tile to flip
+		const tileImg = artGrid.children.item(tileIndex).firstChild;
+
+		tileImg.setAttribute("spotifylink", album.spotify_link); // these are in the album json,
+		tileImg.setAttribute("arturl", album.art_url);           // but still want easy/fast access
+		tileImg.setAttribute("album", JSON.stringify(album));
+
+		tileImg.classList.remove("flip-anim-end");
+		void tileImg.offsetWidth;
+		tileImg.classList.add("flip-anim-start");
+		tileImg.addEventListener("animationend", flipAnimCallback, false);
+
+		artGrid.setAttribute("lastFlipped", tileIndex);
+	}
+
+	function flipAnimCallback(e) {
+		const tileImg = e.target;
+
+		// set new image
+		tileImg.style.setProperty("display", "none");
+		tileImg.setAttribute("src", tileImg.getAttribute("arturl"));
+
+		// trigger 2nd animation
+		tileImg.classList.remove("flip-anim-start");
+		tileImg.style.setProperty("animation-delay", '0s');
+		void tileImg.offsetWidth;
+		tileImg.classList.add("flip-anim-end");
+		tileImg.style.setProperty("display", "block");
+
+		e.target.removeEventListener("animationend", flipAnimCallback);
+	}
+
+	function cascade() {
+		if (flipTime >= 999) return; // don't cascade if one is still happening
+
+		const colDelay = .1;
+		const rowDelay = .1;
+		let delay = 0;
+		const tilesPerRow = Math.floor(width / tileSize);
+		const tiles = Array.from(document.getElementById("ArtGrid").children);
+		const shuffledAlbums = getShuffledAlbumsCopy();
+		tiles.forEach((tile, index) => {
+			const tileImg = tile.firstChild;
+			delay = (colDelay * (index % tilesPerRow)) + (rowDelay * Math.floor(index / tilesPerRow));
+			tileImg.style.setProperty("animation-delay", `${delay}s`);
+			flipTile(index, shuffledAlbums[index]);
+		})
+
+		const prevFlipTime = flipTime;
+		if (flipTime < 999) setFlipTime(999);
+		// reset delays
+		setTimeout(() => {
+			setFlipTime(prevFlipTime);
+		}, (delay*1000 + 1000)); // in ms!
+	}
+
 	return (
 		<div id="App">
 			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID}
@@ -393,7 +469,8 @@ function App() {
 				setFlipTime={setFlipTime} setAlbums={setAlbums}
 				contentMode={contentMode} setContentMode={setContentMode}
 				playlists={playlists} selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
-			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime} setDetails={setDetails} details={details} />
+			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime}
+			 setDetails={setDetails} details={details} cascade={cascade} flipTile={flipTile} />
 			<LoginPrompt redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} tokens={tokens} />
 			<LoadingSpinner albums={albums} />
 			<Details details={details} setDetails={setDetails} />

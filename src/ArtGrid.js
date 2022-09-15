@@ -1,44 +1,29 @@
 import { useEffect, useState } from "react";
 
-function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
+function ArtGrid({ albums, tileSize, count, flipTime, setDetails, cascade, flipTile }) {
 
 	useEffect(() => {
 		let flipInterval;
-		if (albums.length > 0) {
+		if (albums.length > 0 && flipTime < 99) {
 			flipInterval = window.setInterval(() => {
 				// choose a random art-tile img and change src to next indexed album art
 				let shownAlbums = [...document.getElementById("ArtGrid").children].map(tile => tile.firstChild.getAttribute("spotifylink"));
 				let index;
+				let tries = 0;
 				do {
 					index = Math.floor(Math.random() * albums.length);
-				} while (shownAlbums.includes(albums[index].alt));  // prevent dupes -- DOESN'T WORK :(
+					tries++;
+				//} while (shownAlbums.includes(albums[index].spotify_link));  // prevent dupes -- DOESN'T WORK :(
+				} while (shownAlbums.indexOf(albums[index].spotify_link) !== -1 && tries < 200);
 
-				const artGrid = document.getElementById("ArtGrid");
 				// choose tile to flip
 				let tileIndex;
+				const lastFlipped = document.getElementById("ArtGrid").getAttribute("lastFlipped", tileIndex);
 				do {
 					tileIndex = Math.floor(Math.random() * count);
-				} while (tileIndex === artGrid.getAttribute("lastFlipped", tileIndex) && count > 1);
-				const tileImg = artGrid.children.item(tileIndex).firstChild;
+				} while (tileIndex === lastFlipped && count > 1);
+				flipTile(tileIndex, albums[index]);
 
-				// animate flip
-				tileImg.classList.remove("flip-animation");
-				void tileImg.offsetWidth;
-				tileImg.classList.add("flip-animation");
-				setTimeout(() => {
-					tileImg.style.setProperty("display", "none");
-					tileImg.setAttribute("src", albums[index].art_url);
-					tileImg.setAttribute("alt", `${albums[index].name} by ${albums[index].artist}`);
-					tileImg.setAttribute("key", albums[index].id);
-					tileImg.setAttribute("albumName", albums[index].name);
-					tileImg.setAttribute("albumArtist", albums[index].artist);
-					tileImg.setAttribute("spotifyLink", albums[index].spotify_link);
-					tileImg.setAttribute("track", albums[index].track);
-					tileImg.setAttribute("tracknumber", albums[index].track_number);
-					tileImg.style.setProperty("display", "block");
-				}, 500); // half of flip-animation duration
-
-				artGrid.setAttribute("lastFlipped", tileIndex);
 			}, flipTime * 1000);
 		} else {
 			console.log("can't start flip interval");
@@ -46,25 +31,34 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails }) {
 		return () => clearInterval(flipInterval);
 	}, [flipTime, count, albums]);
 
+	useEffect(() => {
+		cacheImages(albums.map(album => album.art_url));
+	}, [albums])
+	
 	function setAlbumAsDetails(e) {
-		setDetails({
-			name: e.target.getAttribute("albumname"),
-			artist: e.target.getAttribute("albumartist"),
-			art_url: e.target.getAttribute("src"),
-			spotify_link: e.target.getAttribute("spotifylink"),
-			track: e.target.getAttribute("track"),
-			track_number: e.target.getAttribute("tracknumber")
+		setDetails(JSON.parse(e.target.getAttribute("album")));
+	}
+
+	async function cacheImages(srcs) {
+		const promises = await srcs.map(src => {
+			return new Promise((resolve, reject) => {
+				const img = new Image();
+
+				img.src = src;
+				img.onload = resolve();
+				img.onerror = reject();
+			});
 		});
+		await Promise.all(promises);
 	}
 
 	return (
 		<div id="ArtGrid">
 			{albums.slice(0, count).map(album => (
-				<div key={album.id} className="art-tile" style={{width: tileSize, height: tileSize}} 
+				<div key={album.id} className="art-tile" style={{width: tileSize, height: tileSize}}
 					onClick={setAlbumAsDetails}>
-					<img src={album.art_url} alt={`${album.name} by ${album.artist}`} 
-						albumname={album.name} albumartist={album.artist} spotifylink={album.spotify_link} 
-						track={album.track} tracknumber={album.track_number} />
+					<img src={album.art_url} alt={`${album.name} by ${album.artist}`} arturl={album.arturl}
+						 spotifylink={album.spotify_link} album={JSON.stringify(album)} />
 				</div>
 			))}
 		</div>

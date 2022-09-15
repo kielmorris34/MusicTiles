@@ -1,15 +1,17 @@
-@keyframes flip-tile {
+@keyframes flip-start {
   from {
-    transform: rotateX(0);
-  }
-  50% {
-    transform: rotateX(0.25turn);
-  }
-  50.1% {
-    transform: rotateX(0.75turn);
+    transform: rotateY(0);
   }
   to {
-    transform: rotateX(1turn);
+    transform: rotateY(0.25turn);
+  }
+}
+@keyframes flip-end {
+  from {
+    transform: rotateY(0.75turn);
+  }
+  to {
+    transform: rotateY(1turn);
   }
 }
 @keyframes fade-in {
@@ -86,6 +88,7 @@ h1, h2, h3, h4, h5 {
   cursor: pointer;
   position: relative;
   overflow: clip;
+  flex-grow: 0;
 }
 .art-tile img {
   position: absolute;
@@ -122,8 +125,13 @@ h1, h2, h3, h4, h5 {
   margin: 0;
 }
 
-.flip-animation {
-  animation: flip-tile 1s linear;
+.flip-anim-start {
+  animation: flip-start 0.5s linear;
+  animation-iteration-count: 1;
+}
+
+.flip-anim-end {
+  animation: flip-end 0.5s linear;
   animation-iteration-count: 1;
 }
 
@@ -316,6 +324,7 @@ a.spotify-link img {
   min-width: 50px;
   min-height: 50px;
   margin-bottom: 20px;
+  backface-visibility: hidden;
 }
 #details > div h3, #details > div h4 {
   font-family: "Questrial";

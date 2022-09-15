@@ -141,6 +141,9 @@ h1,h2,h3,h4,h5
 		width: 100%
 		height: 100%
 		z-index: 1
+		color: #0000 // hide alt text displayed while loading in firefox
+		text-align: center
+		vertical-align: center
 	div.art-info
 		position: absolute
 		left: 0
@@ -178,7 +181,7 @@ $bar-spacing: 12px
 	margin: 0
 	padding: $bar-spacing
 	display: flex
-	flex-flow: row nowrap
+	flex-flow: row wrap
 	justify-content: space-between
 	align-items: center
 	width: 100%
@@ -247,7 +250,7 @@ $bar-spacing: 12px
 	margin: 0
 	> div
 		display: flex
-		flex-flow: row nowrap
+		flex-flow: row wrap
 		justify-content: center
 		align-items: center
 		gap: $bar-spacing
@@ -263,6 +266,10 @@ $bar-spacing: 12px
 				letter-spacing: normal
 				color: var(--theme-color)
 				margin-right: .5em
+#content-radios
+	width: fit-content
+	display: flex
+	flex-flow: row nowrap
 
 #login-prompt
 	z-index: 10

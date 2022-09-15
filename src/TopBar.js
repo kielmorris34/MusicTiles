@@ -87,13 +87,19 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 				<div>
 						<>
 						<label>CONTENT</label>
-						<div onChange={handleContentModeChange}>
-							<input type="radio" value="ALBUMS" name="content_mode" id="radio-albums" disabled={tokens?.tokenType !== "personal"} />
-							<label className='radio-label'>Albums</label>
-							<input type="radio" value="SONGS" name="content_mode" id="radio-songs" disabled={tokens?.tokenType !== "personal"} />
-							<label className='radio-label'>Songs</label>
-							<input type="radio" value="PLAYLIST" name="content_mode" id="radio-playlist" disabled={tokens?.tokenType !== "personal"} />
-							<label className='radio-label'>Playlist</label>
+						<div id='content-radios' onChange={handleContentModeChange}>
+							<div>
+								<input type="radio" value="ALBUMS" name="content_mode" id="radio-albums" disabled={tokens?.tokenType !== "personal"} />
+								<label className='radio-label'>Albums</label>
+							</div>
+							<div>
+								<input type="radio" value="SONGS" name="content_mode" id="radio-songs" disabled={tokens?.tokenType !== "personal"} />
+								<label className='radio-label'>Songs</label>
+							</div>
+							<div>
+								<input type="radio" value="PLAYLIST" name="content_mode" id="radio-playlist" disabled={tokens?.tokenType !== "personal"} />
+								<label className='radio-label'>Playlist</label>
+							</div>
 						</div>
 						</>
 					{ contentMode === "PLAYLIST" ? (

@@ -406,7 +406,7 @@ function App() {
 		} else {
 			console.log("bad response on authType: " + authType);
 			console.log(response.responseText);
-			alert(response.responseText);
+			//alert(response.responseText);
 		}
 	}
 

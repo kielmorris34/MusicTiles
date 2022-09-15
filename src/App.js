@@ -468,9 +468,9 @@ function App() {
 				rows={rows} setRows={setRows} flipTime={flipTime}
 				setFlipTime={setFlipTime} setAlbums={setAlbums}
 				contentMode={contentMode} setContentMode={setContentMode}
-				playlists={playlists} selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
+				playlists={playlists} selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} cascade={cascade} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime}
-			 setDetails={setDetails} details={details} cascade={cascade} flipTile={flipTile} />
+			 setDetails={setDetails} details={details} flipTile={flipTile} />
 			<LoginPrompt redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} tokens={tokens} />
 			<LoadingSpinner albums={albums} />
 			<Details details={details} setDetails={setDetails} />

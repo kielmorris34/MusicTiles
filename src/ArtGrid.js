@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-function ArtGrid({ albums, tileSize, count, flipTime, setDetails, cascade, flipTile }) {
+function ArtGrid({ albums, tileSize, count, flipTime, setDetails, flipTile, details }) {
 
 	useEffect(() => {
 		let flipInterval;

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import'./App.js'
 
-function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums, contentMode, setContentMode, playlists, selectedPlaylist, setSelectedPlaylist }) {
+function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums, contentMode, setContentMode, playlists, selectedPlaylist, setSelectedPlaylist, cascade }) {
 
 	// Set initial theme (dark/light)
 	useEffect(() => {
@@ -58,9 +58,17 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 	return (
 		<div id="top-bar">
 			<div className="options">
-				<button id="dark-toggle" onClick={themeToggle}>
-					<i className="fa-solid fa-lightbulb"></i>
-				</button>
+				<div>
+					<button onClick={themeToggle}>
+						<i className="fa-solid fa-lightbulb"></i>
+					</button>
+					<button>
+						<i className="fa-solid fa-expand"></i>
+					</button>
+					<button onClick={cascade}>
+						<i className="fa-solid fa-rotate-right"></i>
+					</button>
+				</div>
 				<div>
 					<label>ROWS</label>
 					<input type="range" min="2" max="12" step="1" value={rows} onChange={handleRowChange}/>

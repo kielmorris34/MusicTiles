@@ -7,6 +7,7 @@ import LoginPrompt from './LoginPrompt'
 import axios from 'axios';
 import Details from './Details';
 import LoadingSpinner from './LoadingSpinner';
+import ResizeIndicator from './ResizeIndicator';
 
 function useWindowDimension() {
 	const [dimension, setDimension] = useState([
@@ -15,7 +16,6 @@ function useWindowDimension() {
 	]);
 	useEffect(() => {
 		const debouncedResizeHandler = debounce(() => {
-			console.log('***** debounced resize'); // See the cool difference in console
 			setDimension([window.innerWidth, window.innerHeight]);
 		}, 1000); // 100ms
 		window.addEventListener('resize', debouncedResizeHandler);
@@ -27,6 +27,8 @@ function useWindowDimension() {
 function debounce(fn, ms) {
 	let timer;
 	return _ => {
+		document.getElementById("ArtGrid")?.style.setProperty('opacity', 0);
+		document.getElementById("resizing")?.style.setProperty('opacity', 1);
 		clearTimeout(timer);
 		timer = setTimeout(_ => {
 			timer = null;
@@ -47,6 +49,7 @@ function App() {
 	const [contentMode, setContentMode] = useState("ALBUMS");
 	const [playlists, setPlaylists] = useState({});
 	const [selectedPlaylist, setSelectedPlaylist] = useState();
+	const [imageCache, setImageCache] = useState([]);
 
 	//const REDIRECT_URI = "http://localhost:3000";
 	// const REDIRECT_URI = "https://km-music-tiles.netlify.app/";
@@ -102,6 +105,7 @@ function App() {
 		} else {
 			console.log("running auth effect -- albums present, stopping")
 		}
+		cacheImages(albums.map(album => album.art_url)); // cache album art
 	}, [albums]);
 
 	// GET CONTENT UPON TOKEN OR MODE CHANGE
@@ -132,6 +136,8 @@ function App() {
 		const size = height / rows;
 		setTileSize(size);
 		setCount(Math.floor(width / size) * rows);
+		document.getElementById("ArtGrid")?.style.setProperty('opacity', 1);
+		document.getElementById("resizing")?.style.setProperty('opacity', 0);
 	}, [rows, width, height]);
 
 	const mapSpotifyPersonalContent = (responses) => {
@@ -462,17 +468,44 @@ function App() {
 		}, (delay*1000 + 1000)); // in ms!
 	}
 
+	function goFullscreen() {
+		if (document.fullscreenElement !== null) {
+			document.exitFullscreen();
+		} else {
+			document.getElementById('App').requestFullscreen();
+		}
+	}
+
+	async function cacheImages(srcs) {
+		const images = [];
+		const promises = await srcs.map(src => {
+			return new Promise((resolve, reject) => {
+				const img = new Image();
+				images.push(img);
+
+				img.src = src;
+				img.onload = resolve();
+				img.onerror = reject();
+			});
+		});
+		await Promise.all(promises);
+		setImageCache(images);
+		console.log("all album art loaded")
+	}
+
 	return (
 		<div id="App">
 			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID}
 				rows={rows} setRows={setRows} flipTime={flipTime}
 				setFlipTime={setFlipTime} setAlbums={setAlbums}
 				contentMode={contentMode} setContentMode={setContentMode}
-				playlists={playlists} selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} cascade={cascade} />
+				playlists={playlists} selectedPlaylist={selectedPlaylist}
+				setSelectedPlaylist={setSelectedPlaylist} cascade={cascade} goFullscreen={goFullscreen} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime}
 			 setDetails={setDetails} details={details} flipTile={flipTile} />
 			<LoginPrompt redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} tokens={tokens} />
 			<LoadingSpinner albums={albums} />
+			<ResizeIndicator albums={albums} />
 			<Details details={details} setDetails={setDetails} />
 		</div>
 	);

@@ -61,6 +61,11 @@ $spotify-black: #191414
 		opacity: 1
 	100%
 		transform: translateX(0)
+@keyframes colorful-bounce
+	0%
+		transform: scale(1)
+	100%
+		transform: scale(1.25)
 
 // style
 :root
@@ -77,7 +82,7 @@ $spotify-black: #191414
 	--light-color: black
 	$light-bg-color: white
 	--light-bg-color: #{$light-bg-color}
-	--light-accent-color: #b0efff
+	--light-accent-color: #7dbdf8
 	--light-gradient: radial-gradient(circle, #{$light-bg-color} 0%, #{color.adjust($light-bg-color, $lightness: -20%)} 100%)
 
 	// Swtiched in script
@@ -122,6 +127,7 @@ h1,h2,h3,h4,h5
 	justify-content: center
 	align-items: center
 	gap: 0
+	transition: opacity .1s ease-out
 .art-tile
 	cursor: pointer
 	position: relative
@@ -184,6 +190,7 @@ $bar-spacing: 12px
 
 	input[type="range"]
 		-webkit-appearance: none
+		appearance: none
 		height: 7px
 		border-radius: 5px
 		background-size: 100% 100%
@@ -192,6 +199,7 @@ $bar-spacing: 12px
 
 	input[type="range"]::-webkit-slider-thumb
 		-webkit-appearance: none
+		appearance: none
 		height: 20px
 		width: 20px
 		border: 2px solid var(--theme-color)
@@ -202,6 +210,7 @@ $bar-spacing: 12px
 
 	input[type="range"]::-webkit-slider-runnable-track
 		-webkit-appearance: none
+		appearance: none
 		box-shadow: none
 		border: none
 		background: transparent
@@ -266,6 +275,9 @@ $bar-spacing: 12px
 	justify-content: center
 	align-items: center
 	text-align: center
+	a.spotify-link
+		opacity: 1
+		font-size: 1.2em
 	h1
 		margin-bottom: 0
 		margin-top: 0
@@ -280,7 +292,7 @@ $bar-spacing: 12px
 		flex-flow: column nowrap
 		justify-content: center
 		align-items: center
-		box-shadow: 0 20px 10px #222a
+		box-shadow: 0 10px 25px 15px #222b
 		@include theme
 a.spotify-link
 	cursor: pointer
@@ -295,7 +307,7 @@ a.spotify-link
 	border-radius: 20px
 	border: 2px solid $spotify-green
 	margin: 0
-	opacity: 0
+	opacity: 0 // needs to be set here to allow for parent override
 	
 	
 	color: $spotify-green
@@ -354,6 +366,7 @@ a.spotify-link
 			margin: 0.2em
 			text-align: left
 			vertical-align: center
+			max-width: 25vw
 		#detail-track
 			padding-top: 20px
 			color: var(--theme-accent-color)
@@ -391,3 +404,30 @@ a.spotify-link
 		@media (prefers-reduced-motion: no-preference)
 			animation: spin 0.5s linear
 			animation-iteration-count: infinite
+
+#resizing
+	z-index: 0
+	position: absolute
+	left: 0
+	top: 0
+	width: 100vw
+	height: 100vh
+	display: flex
+	flex-flow: column nowrap
+	justify-content: center
+	align-items: center
+	text-align: center
+	gap: 5vh
+	transition: opacity .1s ease-in
+	h1
+		color: var(--theme-color)
+		margin-bottom: 0
+		font-size: 52pt
+		animation: colorful-bounce .5s ease-out
+		animation-iteration-count: infinite
+		animation-direction: alternate
+		text-align: center
+	p
+		text-align: center
+		letter-spacing: .15em
+		color: var(--theme-color)

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import'./App.js'
 
-function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums, contentMode, setContentMode, playlists, selectedPlaylist, setSelectedPlaylist, cascade }) {
+function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums, 
+	contentMode, setContentMode, playlists, selectedPlaylist, setSelectedPlaylist, cascade, goFullscreen }) {
 
 	// Set initial theme (dark/light)
 	useEffect(() => {
@@ -59,13 +60,17 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 		<div id="top-bar">
 			<div className="options">
 				<div>
-					<button onClick={themeToggle}>
+					<button onClick={themeToggle} title='Toggle theme'>
 						<i className="fa-solid fa-lightbulb"></i>
 					</button>
-					<button>
-						<i className="fa-solid fa-expand"></i>
+					<button onClick={goFullscreen} title='Toggle fullscreen'>
+						{ document.fullscreenElement === null ? (  // careful with this, I think it's only working bc
+							<i className="fa-solid fa-expand"></i> // of something else triggering re-render
+						) : (
+							<i className="fa-solid fa-compress"></i>
+						)}
 					</button>
-					<button onClick={cascade}>
+					<button onClick={cascade} title='Refresh tiles'>
 						<i className="fa-solid fa-rotate-right"></i>
 					</button>
 				</div>
@@ -80,22 +85,24 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 					<p>{flipTime} seconds</p>
 				</div>
 				<div>
-					<label>CONTENT</label>
-					<div onChange={handleContentModeChange}>
-						<input type="radio" value="ALBUMS" name="content_mode" id="radio-albums" />
-						<label className='radio-label'>Albums</label>
-						<input type="radio" value="SONGS" name="content_mode" id="radio-songs" />
-						<label className='radio-label'>Songs</label>
-						<input type="radio" value="PLAYLIST" name="content_mode" id="radio-playlist" />
-						<label className='radio-label'>Playlist</label>
-					</div>
-					{ contentMode === "PLAYLIST" ? 
+						<>
+						<label>CONTENT</label>
+						<div onChange={handleContentModeChange}>
+							<input type="radio" value="ALBUMS" name="content_mode" id="radio-albums" disabled={tokens?.tokenType !== "personal"} />
+							<label className='radio-label'>Albums</label>
+							<input type="radio" value="SONGS" name="content_mode" id="radio-songs" disabled={tokens?.tokenType !== "personal"} />
+							<label className='radio-label'>Songs</label>
+							<input type="radio" value="PLAYLIST" name="content_mode" id="radio-playlist" disabled={tokens?.tokenType !== "personal"} />
+							<label className='radio-label'>Playlist</label>
+						</div>
+						</>
+					{ contentMode === "PLAYLIST" ? (
 						<select name="playlist" onChange={handlePlaylistChange} value={selectedPlaylist}>
 							{ Object.keys(playlists).map(playlist => (	
 								<option value={playlist}>{playlist}</option>
 							))}
 						</select>
-					: ""}
+					) : ""}
 				</div>
 			</div>
 			{tokens.tokenType === "personal" ?

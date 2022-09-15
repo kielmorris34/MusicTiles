@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 function ArtGrid({ albums, tileSize, count, flipTime, setDetails, flipTile, details }) {
 
+
 	useEffect(() => {
 		let flipInterval;
 		if (albums.length > 0 && flipTime < 99) {
@@ -25,31 +26,12 @@ function ArtGrid({ albums, tileSize, count, flipTime, setDetails, flipTile, deta
 				flipTile(tileIndex, albums[index]);
 
 			}, flipTime * 1000);
-		} else {
-			console.log("can't start flip interval");
 		}
 		return () => clearInterval(flipInterval);
 	}, [flipTime, count, albums]);
-
-	useEffect(() => {
-		cacheImages(albums.map(album => album.art_url));
-	}, [albums])
 	
 	function setAlbumAsDetails(e) {
 		setDetails(JSON.parse(e.target.getAttribute("album")));
-	}
-
-	async function cacheImages(srcs) {
-		const promises = await srcs.map(src => {
-			return new Promise((resolve, reject) => {
-				const img = new Image();
-
-				img.src = src;
-				img.onload = resolve();
-				img.onerror = reject();
-			});
-		});
-		await Promise.all(promises);
 	}
 
 	return (

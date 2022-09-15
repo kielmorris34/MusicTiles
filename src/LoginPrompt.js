@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import spotifyLogo from "./images/spotify/logo/Spotify_Logo_Black.png"
+import spotifyLogo from "./images/spotify/logo/Spotify_Logo_Green.png"
 
 function LoginPrompt({ redirectToSpotifyAuthorizeEndpoint, tokens }) {
 
@@ -11,7 +11,7 @@ function LoginPrompt({ redirectToSpotifyAuthorizeEndpoint, tokens }) {
 					<h1>MUSIC TILES</h1>
 					<p>See your collection flipped through!</p>
 						<a onClick={redirectToSpotifyAuthorizeEndpoint} className="spotify-link">
-							<strong>Login to</strong> <img src={spotifyLogo}/>
+							Login to <img src={spotifyLogo}/>
 						</a>
 				</div>
 			</div>

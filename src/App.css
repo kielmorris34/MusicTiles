@@ -62,6 +62,14 @@
     transform: translateX(0);
   }
 }
+@keyframes colorful-bounce {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.25);
+  }
+}
 :root {
   --tile-size: 0;
   --enlarge-size: 90vmin;
@@ -71,7 +79,7 @@
   --dark-gradient: radial-gradient(circle, #524141 0%, #191414 100%);
   --light-color: black;
   --light-bg-color: white;
-  --light-accent-color: #b0efff;
+  --light-accent-color: #7dbdf8;
   --light-gradient: radial-gradient(circle, white 0%, #cccccc 100%);
   --theme-color: var(--light-color);
   --theme-bg-color: var(--light-bg-color);
@@ -108,6 +116,7 @@ h1, h2, h3, h4, h5 {
   justify-content: center;
   align-items: center;
   gap: 0;
+  transition: opacity 0.1s ease-out;
 }
 
 .art-tile {
@@ -180,6 +189,7 @@ h1, h2, h3, h4, h5 {
 }
 #top-bar input[type=range] {
   -webkit-appearance: none;
+  appearance: none;
   height: 7px;
   border-radius: 5px;
   background-size: 100% 100%;
@@ -189,6 +199,7 @@ h1, h2, h3, h4, h5 {
 }
 #top-bar input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   height: 20px;
   width: 20px;
   border: 2px solid var(--theme-color);
@@ -199,6 +210,7 @@ h1, h2, h3, h4, h5 {
 }
 #top-bar input[type=range]::-webkit-slider-runnable-track {
   -webkit-appearance: none;
+  appearance: none;
   box-shadow: none;
   border: none;
   background: transparent;
@@ -277,6 +289,10 @@ h1, h2, h3, h4, h5 {
   align-items: center;
   text-align: center;
 }
+#login-prompt a.spotify-link {
+  opacity: 1;
+  font-size: 1.2em;
+}
 #login-prompt h1 {
   margin-bottom: 0;
   margin-top: 0;
@@ -293,7 +309,7 @@ h1, h2, h3, h4, h5 {
   flex-flow: column nowrap;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 20px 10px rgba(34, 34, 34, 0.6666666667);
+  box-shadow: 0 10px 25px 15px rgba(34, 34, 34, 0.7333333333);
   color: var(--theme-color);
   background-color: var(--theme-bg-color);
 }
@@ -377,6 +393,7 @@ a.spotify-link img {
   margin: 0.2em;
   text-align: left;
   vertical-align: center;
+  max-width: 25vw;
 }
 #details #detail-text-box #detail-track {
   padding-top: 20px;
@@ -423,6 +440,36 @@ a.spotify-link img {
     animation: spin 0.5s linear;
     animation-iteration-count: infinite;
   }
+}
+
+#resizing {
+  z-index: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 5vh;
+  transition: opacity 0.1s ease-in;
+}
+#resizing h1 {
+  color: var(--theme-color);
+  margin-bottom: 0;
+  font-size: 52pt;
+  animation: colorful-bounce 0.5s ease-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  text-align: center;
+}
+#resizing p {
+  text-align: center;
+  letter-spacing: 0.15em;
+  color: var(--theme-color);
 }
 
 /*# sourceMappingURL=App.css.map */

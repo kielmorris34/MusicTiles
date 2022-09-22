@@ -332,16 +332,18 @@ a.spotify-link {
   align-items: center;
   text-decoration: none;
   background-color: transparent;
-  padding: 10px;
   border-radius: 20px;
   border: 2px solid #1db954;
+  background-color: #191414;
   margin: 0;
+  padding: 0 0.8em;
   opacity: 0;
   color: #1db954;
 }
 a.spotify-link img {
   height: 1.6em;
-  margin: 0 0 0 7px;
+  margin: 0.8em 0 0.8em 7px;
+  min-width: 70px;
 }
 
 #close-prompt {

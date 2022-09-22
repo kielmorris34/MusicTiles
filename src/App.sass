@@ -310,17 +310,19 @@ a.spotify-link
 	align-items: center
 	text-decoration: none
 	background-color: transparent
-	padding: 10px
 	border-radius: 20px
 	border: 2px solid $spotify-green
+	background-color: $spotify-black
 	margin: 0
+	padding: 0 .8em
 	opacity: 0 // needs to be set here to allow for parent override
 	
 	
 	color: $spotify-green
 	img
 		height: 1.6em
-		margin: 0 0 0 7px
+		margin: .8em 0 .8em 7px 
+		min-width: 70px // according to spotify guidelines
 
 #close-prompt
 	color: #777

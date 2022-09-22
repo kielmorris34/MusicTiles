@@ -51,11 +51,8 @@ function App() {
 	const [selectedPlaylist, setSelectedPlaylist] = useState();
 	const [imageCache, setImageCache] = useState([]);
 
-	//const REDIRECT_URI = "http://localhost:3000";
-	// const REDIRECT_URI = "https://km-music-tiles.netlify.app/";
 	const REDIRECT_URI = window.location.href.split('?')[0];
-	const CLIENT_ID = "1667bd23e69245408998d6429c6b6949";
-	const CLIENT_SECRET = "e44899b0f5114a64bd5bcecdb6036cf3";
+	const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 	const API = "https://api.spotify.com/v1/";
 
 	// STARTUP
@@ -93,13 +90,7 @@ function App() {
 
 			// GET GENERAL AUTH - to show generic albums
 			} else if (tokens.tokenType !== "personal") {
-				console.log("getting generic token")
-				console.log("current token type: " + tokens.tokenType);
-				callAuthApi("general", "grant_type=client_credentials"
-					+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
-					+ `&client_id=${CLIENT_ID}`
-					+ `&client_secret=${CLIENT_SECRET}`
-				);
+				getSpotifyGeneralAlbums();
 			}
 			window.history.pushState("", "", REDIRECT_URI); // remove param from url
 		} else {
@@ -191,6 +182,8 @@ function App() {
 						+ `&refresh_token=${tokens.refreshToken}`
 						+ `&client_id=${CLIENT_ID}`
 					);
+				} else if (error.response) {
+					console.log(error.response)
 				}
 			})
 			responses.push(data);
@@ -246,43 +239,15 @@ function App() {
 	}
 
 	const getSpotifyGeneralAlbums = async () => {
-		let responses = [];
-		const limit = 50;
-		let offset = 0;
-		let theresMore = true;
-		let { data } = await axios.get(API + `browse/featured-playlists`, {
-			headers: {
-				Authorization: `Bearer ${tokens.token}`
+		const res = await fetch('https://km-mid.netlify.app/api/getspotifygeneralalbums', {
+			method: 'GET',
+			mode: 'cors',
+			header: { 
+				'Content-Type': 'application/json',
 			},
-		}).catch(function (error) {
-			if (error.response && error.response.status === 401) {
-				console.log("refresh 401");
-				callAuthApi("general", "grant_type=refresh_token"
-					+ `&refresh_token=${tokens.refreshToken}`
-					+ `&client_id=${CLIENT_ID}`
-				);
-			}
-		});
-		let albums = [];
-		let playlists = data.playlists.items;
-		for (const playlist of playlists) {
-			data = await axios.get(playlist.tracks.href, {
-				headers: {
-					Authorization: `Bearer ${tokens.token}`
-				},
-			});
-			// Get rid of empty tracks, not sure why they are there sometimes
-			const trackObjs = data.data.items.filter(item => item.track != null);
-			// Parse response to general album format
-			albums = albums.concat(trackObjs.map(item => ({
-				name: item.track.album.name,
-				artist: item.track.album.artists[0].name,
-				art_url: item.track.album.images[0].url,
-				release_date: item.track.album.release_date,
-				spotify_link: item.track.album.external_urls.spotify,
-				id: item.track.album.id,
-			})));
-		}
+		})
+		let albums = await res.json().data;
+
 		setAlbums(ensureMinAlbumCount(albums));
 	}
 
@@ -371,7 +336,6 @@ function App() {
 		let xhr = new XMLHttpRequest();
 		xhr.open("POST", "https://accounts.spotify.com/api/token");
 		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		xhr.setRequestHeader('Authorization', 'Basic ' + btoa(CLIENT_ID + ":" + CLIENT_SECRET));
 		xhr.send(body);
 		if (authType === "general") {
 			xhr.onload = handleAuthResponseGeneral;

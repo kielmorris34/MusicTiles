@@ -227,7 +227,13 @@ $bar-spacing: 12px
 			transition: transform .1s ease-in-out
 			&:hover
 				transform: scale(1.5)
-	#logout
+	#right-side
+		display: flex
+		flex-flow: row nowrap
+		gap: 10px
+		justify-content: center
+		align-items: center
+	#loginout
 		cursor: pointer
 		font-family: 'Questrial'
 		font-size: 10pt
@@ -235,6 +241,8 @@ $bar-spacing: 12px
 		border-radius: 6px
 		border: 2px solid var(--theme-color)
 		@include theme
+	img
+		width: 70px
 
 .vert-rule
 	width: 2px
@@ -282,7 +290,7 @@ $bar-spacing: 12px
 	justify-content: center
 	align-items: center
 	text-align: center
-	a.spotify-link
+	.spotify-link
 		opacity: 1
 		font-size: 1.2em
 	h1
@@ -293,7 +301,8 @@ $bar-spacing: 12px
 		margin-top: .5em
 		margin-bottom: 2em
 	> div
-		padding: 40px
+		position: relative
+		padding: 70px
 		border-radius: 40px
 		display: flex
 		flex-flow: column nowrap
@@ -301,7 +310,19 @@ $bar-spacing: 12px
 		align-items: center
 		box-shadow: 0 10px 25px 15px #222b
 		@include theme
-a.spotify-link
+		#close-login
+			position: absolute
+			top: 20px
+			right: 20px
+			border: none
+			background-color: transparent
+			font-size: x-large
+			transition: color .1s linear
+			color: var(--theme-color)
+			&:hover
+				color: red
+.spotify-link
+	font-family: 'Questrial', sans-serif
 	cursor: pointer
 	width: 50%
 	display: flex
@@ -310,12 +331,16 @@ a.spotify-link
 	align-items: center
 	text-decoration: none
 	background-color: transparent
+	border: none
 	border-radius: 20px
-	border: 2px solid $spotify-green
-	background-color: $spotify-black
+	outline: 2px solid $spotify-green
+	background-color: var(--theme-bg-color)
 	margin: 0
 	padding: 0 .8em
 	opacity: 0 // needs to be set here to allow for parent override
+	transition: outline .2s ease-in-out
+	&:hover
+		outline: 6px solid $spotify-green
 	
 	
 	color: $spotify-green
@@ -341,6 +366,7 @@ a.spotify-link
 	background-color: #000d
 	backdrop-filter: blur(10px)
 	animation: detail-bg 1s ease-out
+	transition: opacity .1s linear
 	> div
 		width: 100vw
 		height: 100vh
@@ -361,6 +387,7 @@ a.spotify-link
 		justify-content: flex-start
 		padding-top: 20vh
 		align-items: center
+		z-index: 100
 		color: white
 		> div
 			padding: 0 2vw
@@ -369,6 +396,7 @@ a.spotify-link
 			margin-top: auto
 			margin-bottom: 5vh
 			transition: opacity 0.2s ease-in-out
+			background-color: transparent
 		h2,h3,h4
 			font-family: 'Questrial'
 			font-weight: normal

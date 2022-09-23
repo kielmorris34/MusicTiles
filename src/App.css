@@ -231,7 +231,14 @@ h1, h2, h3, h4, h5 {
 #top-bar button i:hover {
   transform: scale(1.5);
 }
-#top-bar #logout {
+#top-bar #right-side {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+#top-bar #loginout {
   cursor: pointer;
   font-family: "Questrial";
   font-size: 10pt;
@@ -240,6 +247,9 @@ h1, h2, h3, h4, h5 {
   border: 2px solid var(--theme-color);
   color: var(--theme-color);
   background-color: var(--theme-bg-color);
+}
+#top-bar img {
+  width: 70px;
 }
 
 .vert-rule {
@@ -298,7 +308,7 @@ h1, h2, h3, h4, h5 {
   align-items: center;
   text-align: center;
 }
-#login-prompt a.spotify-link {
+#login-prompt .spotify-link {
   opacity: 1;
   font-size: 1.2em;
 }
@@ -312,7 +322,8 @@ h1, h2, h3, h4, h5 {
   margin-bottom: 2em;
 }
 #login-prompt > div {
-  padding: 40px;
+  position: relative;
+  padding: 70px;
   border-radius: 40px;
   display: flex;
   flex-flow: column nowrap;
@@ -322,8 +333,22 @@ h1, h2, h3, h4, h5 {
   color: var(--theme-color);
   background-color: var(--theme-bg-color);
 }
+#login-prompt > div #close-login {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  border: none;
+  background-color: transparent;
+  font-size: x-large;
+  transition: color 0.1s linear;
+  color: var(--theme-color);
+}
+#login-prompt > div #close-login:hover {
+  color: red;
+}
 
-a.spotify-link {
+.spotify-link {
+  font-family: "Questrial", sans-serif;
   cursor: pointer;
   width: 50%;
   display: flex;
@@ -332,15 +357,20 @@ a.spotify-link {
   align-items: center;
   text-decoration: none;
   background-color: transparent;
+  border: none;
   border-radius: 20px;
-  border: 2px solid #1db954;
-  background-color: #191414;
+  outline: 2px solid #1db954;
+  background-color: var(--theme-bg-color);
   margin: 0;
   padding: 0 0.8em;
   opacity: 0;
+  transition: outline 0.2s ease-in-out;
   color: #1db954;
 }
-a.spotify-link img {
+.spotify-link:hover {
+  outline: 6px solid #1db954;
+}
+.spotify-link img {
   height: 1.6em;
   margin: 0.8em 0 0.8em 7px;
   min-width: 70px;
@@ -365,6 +395,7 @@ a.spotify-link img {
   background-color: rgba(0, 0, 0, 0.8666666667);
   backdrop-filter: blur(10px);
   animation: detail-bg 1s ease-out;
+  transition: opacity 0.1s linear;
 }
 #details > div {
   width: 100vw;
@@ -387,6 +418,7 @@ a.spotify-link img {
   justify-content: flex-start;
   padding-top: 20vh;
   align-items: center;
+  z-index: 100;
   color: white;
 }
 #details #detail-text-box > div {
@@ -397,6 +429,7 @@ a.spotify-link img {
   margin-top: auto;
   margin-bottom: 5vh;
   transition: opacity 0.2s ease-in-out;
+  background-color: transparent;
 }
 #details #detail-text-box h2, #details #detail-text-box h3, #details #detail-text-box h4 {
   font-family: "Questrial";

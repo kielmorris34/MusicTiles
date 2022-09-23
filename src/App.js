@@ -1,13 +1,13 @@
-import { useEffect, useState, useLayoutEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import ArtGrid from './ArtGrid';
-import Settings from './Settings';
 import TopBar from './TopBar';
 import LoginPrompt from './LoginPrompt'
 import axios from 'axios';
 import Details from './Details';
 import LoadingSpinner from './LoadingSpinner';
 import ResizeIndicator from './ResizeIndicator';
+import { v4 as uuid } from 'uuid'
 
 function useWindowDimension() {
 	const [dimension, setDimension] = useState([
@@ -44,19 +44,26 @@ function App() {
 	const [width, height] = useWindowDimension();
 	const [tokens, setTokens] = useState({});
 	const [albums, setAlbums] = useState([]);
+	const [defaultAlbums, setDefaultAlbums] = useState([]);
 	const [flipTime, setFlipTime] = useState(4);
 	const [details, setDetails] = useState();
 	const [contentMode, setContentMode] = useState("ALBUMS");
 	const [playlists, setPlaylists] = useState({});
 	const [selectedPlaylist, setSelectedPlaylist] = useState();
 	const [imageCache, setImageCache] = useState([]);
+	//const [updateCode, setUpdateCode] = useState('');
+	const updateCode = useRef(null);
 
 	const REDIRECT_URI = window.location.href.split('?')[0];
 	const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 	const API = "https://api.spotify.com/v1/";
 
+	// EFFECTS ///////////////////////////////////////////////////////////
+
 	// STARTUP
 	useEffect(() => {
+		if (tokens.getting || tokens.token) return;
+
 		// GET MODE FROM STORAGE
 		const storedContentMode = window.localStorage.getItem("content_mode");
 		if (!storedContentMode) {
@@ -68,52 +75,30 @@ function App() {
 		}
 
 		// AUTH
-		if (albums.length === 0 && (tokens === undefined || tokens.tokenType !== 'personal')) {
-			console.log("running auth effect -- no albums, proceeding");
-			let storedToken = window.localStorage.getItem("token");
-			// GET STORED LOGIN - if exists
-			if (storedToken) {
-				console.log("stored personal token found")
-				let storedRefreshToken = window.localStorage.getItem("refresh_token");
-				setTokens({ token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
+		console.log("running auth effect -- no albums, proceeding");
+		getAuth();
+		if (defaultAlbums.length === 0) getSpotifyGeneralAlbums();
+	}, [tokens]);
 
-			// GET ACCOUNT AUTH WITH CODE - code set upon redirect back from Spotify login
-			} else if (window.location.search.length > 0) {
-				console.log("code seen, getting account token")
-				let code = (new URLSearchParams(window.location.search)).get('code');
-				callAuthApi("personal", "grant_type=authorization_code"
-					+ `&code=${code}`
-					+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
-					+ `&client_id=${CLIENT_ID}`
-					+ `&code_verifier=${localStorage.getItem("code_verifier")}`
-				);
-
-			// GET GENERAL AUTH - to show generic albums
-			} else if (tokens.tokenType !== "personal") {
-				getSpotifyGeneralAlbums();
-			}
-			window.history.pushState("", "", REDIRECT_URI); // remove param from url
-		} else {
-			console.log("running auth effect -- albums present, stopping")
-		}
-		cacheImages(albums.map(album => album.art_url)); // cache album art
-	}, [albums]);
+	// useEffect(() => {
+	// 	if (albums.length > 0) cacheImages(albums.map(album => album.art_url)); // cache album art
+	// }, [albums]);
 
 	// GET CONTENT UPON TOKEN OR MODE CHANGE
 	useEffect(() => {
-		if (tokens.token) {
-			if (albums.length === 0) {
-				if (tokens.tokenType === "personal") {
-					getSpotifyPersonalContent();
-				} else { // general
-					getSpotifyGeneralAlbums();
+		if (albums.length === 0) {
+			if (tokens.token) {
+				getSpotifyPersonalContent();
+				if (Object.keys(playlists).length === 0 && tokens.tokenType === "personal") {
+					getSpotifyPersonalPlaylists();
 				}
+			} else if (defaultAlbums?.length > 0) { // general, done in this effect for after logout (tokens wiped)
+				let currentCode = uuid();
+				updateCode.current = currentCode;
+				safeSetAlbums(defaultAlbums, currentCode);
 			}
-			if (Object.keys(playlists).length === 0 && tokens.tokenType === "personal") {
-				getSpotifyPersonalPlaylists();
-			}
-		}
-	}, [tokens, contentMode, selectedPlaylist]);
+		}	
+	}, [tokens, contentMode, selectedPlaylist, defaultAlbums]);
 
 	// ENSURE THERE ARE ENOUGH ALBUMS UPON WINDOW/ROW CHANGE
 	useEffect(() => {
@@ -130,6 +115,34 @@ function App() {
 		document.getElementById("ArtGrid")?.style.setProperty('opacity', 1);
 		document.getElementById("resizing")?.style.setProperty('opacity', 0);
 	}, [rows, width, height]);
+
+	// FUNCTIONS ///////////////////////////////////////////////////////////
+
+	function getAuth() {
+		if (tokens.getting) return;
+
+		setTokens({ getting: true });
+
+		let storedToken = window.localStorage.getItem("token");
+		// GET STORED LOGIN - if exists
+		if (storedToken) {
+			console.log("stored personal token found")
+			let storedRefreshToken = window.localStorage.getItem("refresh_token");
+			setTokens({ token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
+
+		// GET ACCOUNT AUTH WITH CODE - code set upon redirect back from Spotify login
+		} else if (window.location.search.length > 0) {
+			console.log("code seen, getting account token")
+			let code = (new URLSearchParams(window.location.search)).get('code');
+			callAuthApi("personal", "grant_type=authorization_code"
+				+ `&code=${code}`
+				+ `&redirect_uri=${encodeURI(REDIRECT_URI)}`
+				+ `&client_id=${CLIENT_ID}`
+				+ `&code_verifier=${localStorage.getItem("code_verifier")}`
+			);
+			window.history.pushState("", "", REDIRECT_URI); // remove param from url
+		}
+	}
 
 	const mapSpotifyPersonalContent = (responses) => {
 		let newAlbums = [];
@@ -162,6 +175,9 @@ function App() {
 	}
 
 	const getSpotifyPersonalContent = async () => {
+		let currentCode = uuid();
+		updateCode.current = currentCode;
+
 		let currContentMode = contentMode;
 		let currSelectedPlaylist = selectedPlaylist;
 
@@ -182,7 +198,12 @@ function App() {
 						+ `&refresh_token=${tokens.refreshToken}`
 						+ `&client_id=${CLIENT_ID}`
 					);
+				} else if (error.response && error.response.status === 429) {
+					setTimeout(() => {
+						getSpotifyPersonalContent();
+					}, (error.response.headers.retryAfter ?? 2)*1000 + 100);
 				} else if (error.response) {
+					console.log('uncaught error while getting personal content: ' + error.response.status);
 					console.log(error.response)
 				}
 			})
@@ -197,7 +218,7 @@ function App() {
 
 		// Parse response to general format
 		let newAlbums = mapSpotifyPersonalContent(responses);
-		setAlbums(backloadDupeAlbums(ensureMinAlbumCount(newAlbums)));
+		safeSetAlbums(backloadDupeAlbums(ensureMinAlbumCount(newAlbums)), currentCode);
 	}
 
 	const getSpotifyPersonalPlaylists = async () => {
@@ -239,16 +260,22 @@ function App() {
 	}
 
 	const getSpotifyGeneralAlbums = async () => {
-		const res = await fetch('https://km-mid.netlify.app/api/getspotifygeneralalbums', {
+		console.log('getting generals');
+		const res = await fetch('https://km-mid.netlify.app/api/getgeneralspotifyalbums', {
 			method: 'GET',
 			mode: 'cors',
 			header: { 
 				'Content-Type': 'application/json',
 			},
 		})
-		let albums = await res.json().data;
+		let json = await res.json();
+		let newAlbums = json.data;
 
-		setAlbums(ensureMinAlbumCount(albums));
+		// don't overwrite if already there
+		console.log("GOT GEN ALBUMS");
+		if (defaultAlbums.length > 0) return;
+
+		setDefaultAlbums(ensureMinAlbumCount(newAlbums));
 	}
 
 	function ensureMinAlbumCount(albumArr) {
@@ -260,6 +287,7 @@ function App() {
 			}
 		} else {
 			console.log("No albums");
+			return [];
 		}
 		albumArr = [...albumArr].sort(() => 0.5 - Math.random()); // shuffle
 		return albumArr;
@@ -282,6 +310,15 @@ function App() {
 	function getShuffledAlbumsCopy() {
 		const shuffled = [...albums].sort(() => 0.5 - Math.random());
 		return backloadDupeAlbums(shuffled);
+	}
+
+	function safeSetAlbums(newAlbums, code) {
+		if (code !== updateCode.current) {
+			console.log(`album change denied, code ${code} != ${updateCode.current}. Attempted change below`);
+			console.trace(newAlbums);
+			return;
+		}
+		setAlbums(newAlbums);
 	}
 
 	function generateRandomString(length) {
@@ -454,7 +491,7 @@ function App() {
 		});
 		await Promise.all(promises);
 		setImageCache(images);
-		console.log("all album art loaded")
+		console.trace("all album art loaded")
 	}
 
 	return (
@@ -463,8 +500,8 @@ function App() {
 				rows={rows} setRows={setRows} flipTime={flipTime}
 				setFlipTime={setFlipTime} setAlbums={setAlbums}
 				contentMode={contentMode} setContentMode={setContentMode}
-				playlists={playlists} selectedPlaylist={selectedPlaylist}
-				setSelectedPlaylist={setSelectedPlaylist} cascade={cascade} goFullscreen={goFullscreen} />
+				playlists={playlists} selectedPlaylist={selectedPlaylist} setPlaylists={setPlaylists}
+				setSelectedPlaylist={setSelectedPlaylist} cascade={cascade} goFullscreen={goFullscreen} redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} />
 			<ArtGrid albums={albums} tileSize={tileSize} count={count} flipTime={flipTime}
 			 setDetails={setDetails} details={details} flipTile={flipTile} />
 			<LoginPrompt redirectToSpotifyAuthorizeEndpoint={redirectToSpotifyAuthorizeEndpoint} tokens={tokens} />

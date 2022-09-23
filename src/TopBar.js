@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import'./App.js'
+import spotifyLogo from "./images/spotify/logo/Spotify_Logo_Green.png"
 
 function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums, 
-	contentMode, setContentMode, playlists, selectedPlaylist, setSelectedPlaylist, cascade, goFullscreen }) {
+	contentMode, setContentMode, playlists, setPlaylists, selectedPlaylist, setSelectedPlaylist, cascade, goFullscreen, redirectToSpotifyAuthorizeEndpoint }) {
 
 	// Set initial theme (dark/light)
 	useEffect(() => {
@@ -15,6 +16,7 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 		window.localStorage.removeItem("refresh_token");
 		setTokens({});
 		setAlbums([]);
+		setPlaylists([]);
 	}
 
 	const handleRowChange = (e) => {
@@ -111,9 +113,14 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 					) : ""}
 				</div>
 			</div>
-			{tokens.tokenType === "personal" ?
-				<button id="logout" onClick={logout}>LOGOUT</button>
-			: "" }
+			<div id='right-side'>
+				{tokens.tokenType === "personal" ?
+					<button id="loginout" onClick={logout}>LOGOUT</button>
+				:
+					<button id="loginout" onClick={redirectToSpotifyAuthorizeEndpoint}>LOGIN</button>
+				}
+				<img src={spotifyLogo} alt="Spotify logo" />
+			</div>
 		</div>
 	);
   }

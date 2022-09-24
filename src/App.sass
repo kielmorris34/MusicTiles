@@ -1,4 +1,5 @@
 @use "sass:color"
+@use "sass:math"
 
 // vars
 $spotify-green: #1db954
@@ -96,7 +97,14 @@ $spotify-black: #191414
 @mixin theme-accent
 	color: var(--light-color)
 	background-color: var(--theme-accent-color)
-@mixin theme-gradient
+
+@mixin centerer
+	width: 0
+	height: 0
+	display: flex
+	flex-flow: row nowrap
+	justify-content: center
+	align-items: center
 
 //
 
@@ -407,6 +415,7 @@ $bar-spacing: 12px
 		#detail-track
 			padding-top: 20px
 			color: var(--theme-accent-color)
+			line-height: 1.8em
 			span
 				border: 1px solid var(--theme-accent-color)
 				border-radius: 5px
@@ -424,23 +433,18 @@ $bar-spacing: 12px
 		flex-grow: 1
 
 #loading
+	position: fixed
+	top: 50%
+	left: 50%
 	z-index: 1
-	position: absolute
-	left: 0
-	top: 0
-	width: 100vw
-	height: 100vh
-	display: flex
-	justify-content: center
-	align-items: center
-	text-align: center
+	@include centerer
+	@media (prefers-reduced-motion: no-preference)
+		animation: spin 0.5s linear
+		animation-iteration-count: infinite
 	h1
-		margin-bottom: 0
+		margin: 0
 		font-size: 52pt
 		color: var(--theme-color)
-		@media (prefers-reduced-motion: no-preference)
-			animation: spin 0.5s linear
-			animation-iteration-count: infinite
 
 #resizing
 	z-index: 0
@@ -454,7 +458,7 @@ $bar-spacing: 12px
 	justify-content: center
 	align-items: center
 	text-align: center
-	gap: 5vh
+	gap: 5px
 	transition: opacity .1s ease-in
 	h1
 		color: var(--theme-color)
@@ -468,3 +472,25 @@ $bar-spacing: 12px
 		text-align: center
 		letter-spacing: .15em
 		color: var(--theme-color)
+
+.filler-icons
+	position: fixed
+	top: 0
+	left: 0
+	$radius-step: 180
+	@for $i from 1 through 32
+		div:nth-child(#{$i})
+			position: fixed
+			top: 50%
+			left: 50%
+			font-size: 48pt
+			opacity: .25
+			@include centerer
+			@include theme
+			$ring: math.floor(math.div($i - 1, 8) + 1)
+			$radius: $radius-step * $ring
+			$offset-x: (math.cos(($i % 8) * 45deg + $ring * 22.5deg) * $radius)
+			$offset-y: (math.sin(($i % 8) * 45deg + $ring * 22.5deg) * $radius)
+			$scale: math.floor(math.div($i - 1, 8) + 1) * .6
+			transform-style: preserve-3d
+			transform: translate(#{$offset-x * 1px}, #{$offset-y * 1px}) rotate3d(#{$offset-y}, #{-$offset-x}, 0, 32deg) scale(#{$scale})

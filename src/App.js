@@ -75,7 +75,7 @@ function App() {
 		}
 
 		// AUTH
-		console.log("running auth effect -- no albums, proceeding");
+		// console.log("running auth effect -- no albums, proceeding");
 		getAuth();
 		if (defaultAlbums.length === 0) getSpotifyGeneralAlbums();
 	}, [tokens]);
@@ -126,13 +126,13 @@ function App() {
 		let storedToken = window.localStorage.getItem("token");
 		// GET STORED LOGIN - if exists
 		if (storedToken) {
-			console.log("stored personal token found")
+			// console.log("stored personal token found")
 			let storedRefreshToken = window.localStorage.getItem("refresh_token");
 			setTokens({ token: storedToken, refreshToken: storedRefreshToken, tokenType: "personal" });
 
 		// GET ACCOUNT AUTH WITH CODE - code set upon redirect back from Spotify login
 		} else if (window.location.search.length > 0) {
-			console.log("code seen, getting account token")
+			// console.log("code seen, getting account token")
 			let code = (new URLSearchParams(window.location.search)).get('code');
 			callAuthApi("personal", "grant_type=authorization_code"
 				+ `&code=${code}`
@@ -193,7 +193,7 @@ function App() {
 				},
 			}).catch(function (error) {
 				if (error.response && error.response.status === 401) {
-					console.log("refresh 401 personal albums");
+					// console.log("refresh 401 personal albums");
 					callAuthApi("personal", "grant_type=refresh_token"
 						+ `&refresh_token=${tokens.refreshToken}`
 						+ `&client_id=${CLIENT_ID}`
@@ -203,8 +203,8 @@ function App() {
 						getSpotifyPersonalContent();
 					}, (error.response.headers.retryAfter ?? 2)*1000 + 100);
 				} else if (error.response) {
-					console.log('uncaught error while getting personal content: ' + error.response.status);
-					console.log(error.response)
+					// console.log('uncaught error while getting personal content: ' + error.response.status);
+					// console.log(error.response)
 				}
 			})
 			responses.push(data);
@@ -233,7 +233,7 @@ function App() {
 				},
 			}).catch(function (error) {
 				if (error.response && error.response.status === 401) {
-					console.log("refresh 401 personal playlists");
+					// console.log("refresh 401 personal playlists");
 					callAuthApi("personal", "grant_type=refresh_token"
 						+ `&refresh_token=${tokens.refreshToken}`
 						+ `&client_id=${CLIENT_ID}`
@@ -260,7 +260,7 @@ function App() {
 	}
 
 	const getSpotifyGeneralAlbums = async () => {
-		console.log('getting generals');
+		// console.log('getting generals');
 		const res = await fetch('https://km-mid.netlify.app/api/getgeneralspotifyalbums', {
 			method: 'GET',
 			mode: 'cors',
@@ -272,7 +272,7 @@ function App() {
 		let newAlbums = json.data;
 
 		// don't overwrite if already there
-		console.log("GOT GEN ALBUMS");
+		// console.log("GOT GEN ALBUMS");
 		if (defaultAlbums.length > 0) return;
 
 		setDefaultAlbums(ensureMinAlbumCount(newAlbums));
@@ -286,7 +286,7 @@ function App() {
 				albumArr = albumArr.concat(albumArr);
 			}
 		} else {
-			console.log("No albums");
+			// console.log("No albums");
 			return [];
 		}
 		albumArr = [...albumArr].sort(() => 0.5 - Math.random()); // shuffle
@@ -314,8 +314,8 @@ function App() {
 
 	function safeSetAlbums(newAlbums, code) {
 		if (code !== updateCode.current) {
-			console.log(`album change denied, code ${code} != ${updateCode.current}. Attempted change below`);
-			console.trace(newAlbums);
+			// console.log(`album change denied, code ${code} != ${updateCode.current}. Attempted change below`);
+			// console.trace(newAlbums);
 			return;
 		}
 		setAlbums(newAlbums);
@@ -388,7 +388,7 @@ function App() {
 	function handleAuthResponse(authType, response) {
 		if (response.status === 200) {
 			var data = JSON.parse(response.responseText);
-			console.log("success 200");
+			// console.log("success 200");
 			if (authType === "personal") {
 				if (data.access_token !== undefined) {
 					window.localStorage.setItem("token", data.access_token);
@@ -399,14 +399,14 @@ function App() {
 			} // don't bother storing a "general" token
 			setTokens({ token: data.access_token, refreshToken: data.refresh_token, tokenType: authType });
 		} else if (response.status === 401) {
-			console.log("refresh 401, refreshToken: " + tokens.refreshToken);
+			// console.log("refresh 401, refreshToken: " + tokens.refreshToken);
 			callAuthApi(authType, "grant_type=refresh_token"
 				+ `&refresh_token=${tokens.refreshToken}`
 				+ `&client_id=${CLIENT_ID}`
 			);
 		} else {
-			console.log("bad response on authType: " + authType);
-			console.log(response.responseText);
+			// console.log("bad response on authType: " + authType);
+			// console.log(response.responseText);
 			//alert(response.responseText);
 		}
 	}
@@ -446,7 +446,7 @@ function App() {
 	}
 
 	function cascade() {
-		if (flipTime >= 999) return; // don't cascade if one is still happening
+		if (flipTime >= 98) return; // don't cascade if one is still happening
 
 		const colDelay = .1;
 		const rowDelay = .1;
@@ -462,10 +462,14 @@ function App() {
 		})
 
 		const prevFlipTime = flipTime;
-		if (flipTime < 999) setFlipTime(999);
+		if (flipTime < 98) {
+			setFlipTime(99);
+			document.getElementById('flip-rate-slider').setAttribute('disabled', 'true')
+		}
 		// reset delays
 		setTimeout(() => {
 			setFlipTime(prevFlipTime);
+			document.getElementById('flip-rate-slider').removeAttribute('disabled')
 		}, (delay*1000 + 1000)); // in ms!
 	}
 
@@ -491,12 +495,12 @@ function App() {
 		});
 		await Promise.all(promises);
 		setImageCache(images);
-		console.trace("all album art loaded")
+		// console.trace("all album art loaded")
 	}
 
 	return (
 		<div id="App">
-			<TopBar tokens={tokens} setTokens={setTokens} clientId={CLIENT_ID}
+			<TopBar tokens={tokens} setTokens={setTokens}
 				rows={rows} setRows={setRows} flipTime={flipTime}
 				setFlipTime={setFlipTime} setAlbums={setAlbums}
 				contentMode={contentMode} setContentMode={setContentMode}

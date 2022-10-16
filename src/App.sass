@@ -112,9 +112,10 @@ $spotify-black: #191414
 	position: relative
 	background: var(--theme-gradient)
 	display: grid
-	grid-template-rows: 50px 1fr
+	grid-template-rows: 1fr
 	margin: 0
 	justify-items: center
+	align-items: start
 	width: 100vw
 	height: 100vh
 	overflow: hidden
@@ -130,6 +131,7 @@ h1,h2,h3,h4,h5
 	z-index: 1
 	width: 100vw
 	height: 100vh
+	margin: 0
 	display: flex
 	flex-flow: row wrap
 	justify-content: center
@@ -194,6 +196,7 @@ $bar-spacing: 12px
 	align-items: center
 	width: 100%
 	position: absolute
+	top: 0
 	opacity: 0
 	transition: opacity 0.2s ease-out
 	box-shadow: 0 5px 10px #0005
@@ -202,6 +205,9 @@ $bar-spacing: 12px
 	input[type="range"]
 		-webkit-appearance: none
 		appearance: none
+		width: 5vw
+		@media screen and (max-width: 1400px)
+			width: auto
 		height: 7px
 		border-radius: 5px
 		background-size: 100% 100%
@@ -251,6 +257,8 @@ $bar-spacing: 12px
 		@include theme
 	img
 		width: 70px
+#toggle-top-bar
+	display: none // only used for small screens
 
 .vert-rule
 	width: 2px
@@ -266,7 +274,7 @@ $bar-spacing: 12px
 	margin: 0
 	> div
 		display: flex
-		flex-flow: row wrap
+		flex-flow: row nowrap
 		justify-content: center
 		align-items: center
 		gap: $bar-spacing
@@ -286,6 +294,42 @@ $bar-spacing: 12px
 	width: fit-content
 	display: flex
 	flex-flow: row nowrap
+
+// COMPRESSED TOP BAR FOR SMALL SCREENS
+@media screen and (max-width: 1400px)
+	#top-bar
+		flex-flow: column nowrap
+		align-items: flex-start
+		gap: 20px
+		width: fit-content
+		height: fit-content
+		border-radius: 0 0 10px 10px
+		opacity: 1
+		transform: translateY(-110%)
+		transition: transform 0.5s ease-out
+		&.open
+			transform: translateY(0)
+	.options
+		flex-flow: column nowrap
+		align-items: flex-start
+		gap: 10px
+	.always-centered
+		align-self: center
+	#toggle-top-bar
+		display: block
+		position: absolute
+		left: 50%
+		transform: translateX(-50%)
+		bottom: -100px
+		font-size: x-large
+		clip-path: circle(30%)
+		padding: 1em
+		opacity: 0
+		transition: opacity 0.1s ease-out
+	#App:hover
+		#toggle-top-bar
+			opacity: 1
+
 
 #login-prompt
 	z-index: 10
@@ -387,17 +431,21 @@ $bar-spacing: 12px
 			a, p
 				opacity: 1
 	#detail-text-box
-		flex-grow: 2
+		flex-basis: 30%
+		max-width: 30%
+		flex-shrink: 1
 		padding: 0
 		margin: 0
 		display: flex
 		flex-flow: column nowrap
 		justify-content: flex-start
-		padding-top: 20vh
+		padding: 20vh 0 20vh 0
 		align-items: center
 		z-index: 100
 		color: white
+		overflow-wrap: break-word
 		> div
+			max-width: 100%
 			padding: 0 2vw
 		> a
 			width: fit-content
@@ -411,7 +459,6 @@ $bar-spacing: 12px
 			margin: 0.2em
 			text-align: left
 			vertical-align: center
-			max-width: 25vw
 		#detail-track
 			padding-top: 20px
 			color: var(--theme-accent-color)
@@ -422,15 +469,19 @@ $bar-spacing: 12px
 				padding: 5px
 				font-size: .7em
 	#detail-image
-		width: 100vmin
-		height: 100vmin
+		flex-grow: 1
+		max-width: 100vh
+		max-height: 100vh
 		min-width: 50px
 		min-height: 50px
-		background-size: cover
+		// background-size: cover
+		background-size: contain
+		background-repeat: no-repeat
+		background-position-y: center
 		backface-visibility: hidden // fix for blurry transition in firefox
 		box-shadow: -60px 0 90px #000d
-	#detail-spacer
-		flex-grow: 1
+	// #detail-spacer
+	// 	flex-grow: 1
 
 #loading
 	position: fixed

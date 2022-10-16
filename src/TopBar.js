@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import'./App.js'
 import spotifyLogo from "./images/spotify/logo/Spotify_Logo_Green.png"
 
-function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipTime, setAlbums, 
+function TopBar({ tokens, setTokens, rows, setRows, flipTime, setFlipTime, setAlbums, 
 	contentMode, setContentMode, playlists, setPlaylists, selectedPlaylist, setSelectedPlaylist, cascade, goFullscreen, redirectToSpotifyAuthorizeEndpoint }) {
 
 	// Set initial theme (dark/light)
@@ -58,10 +58,17 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 		window.localStorage.setItem("theme", theme);
 	}
 
+	// For small screens only
+	function toggleTopBar() {
+		document.getElementById("top-bar").classList.toggle("open")
+		document.getElementById("toggle-top-bar-icon").classList.toggle("fa-angle-down")
+		document.getElementById("toggle-top-bar-icon").classList.toggle("fa-angle-up")
+	}
+
 	return (
 		<div id="top-bar">
 			<div className="options">
-				<div>
+				<div className='always-centered'>
 					<button onClick={themeToggle} title='Toggle theme'>
 						<i className="fa-solid fa-lightbulb"></i>
 					</button>
@@ -83,8 +90,8 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 				</div>
 				<div>
 					<label>FLIP RATE</label>
-					<input type="range" min="0.5" max="30" step="0.5" value={flipTime} onChange={handleFlipTimeChange}/>
-					<p>{flipTime} seconds</p>
+					<input id='flip-rate-slider' type="range" min="0.5" max="30.0" step="0.5" value={flipTime} onChange={handleFlipTimeChange}/>
+					<p>{parseFloat(flipTime).toLocaleString('en-US', {minimumFractionDigits: 1})} seconds</p>
 				</div>
 				<div>
 						<>
@@ -113,7 +120,7 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 					) : ""}
 				</div>
 			</div>
-			<div id='right-side'>
+			<div id='right-side' className='always-centered'>
 				{tokens.tokenType === "personal" ?
 					<button id="loginout" onClick={logout}>LOGOUT</button>
 				:
@@ -121,6 +128,9 @@ function TopBar({ tokens, setTokens, clientId, rows, setRows, flipTime, setFlipT
 				}
 				<img src={spotifyLogo} alt="Spotify logo" />
 			</div>
+			<button id='toggle-top-bar' onClick={toggleTopBar} title='Toggle Options'>
+				<i id='toggle-top-bar-icon' className="fa-solid fa-angle-down"></i>
+			</button>
 		</div>
 	);
   }
